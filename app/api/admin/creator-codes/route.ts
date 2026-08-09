@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const username = (body.username || "").trim().toLowerCase();
   const code = (body.code || "").trim().toUpperCase();
-  const commissionPercent = body.commissionPercent ? Number(body.commissionPercent) : 10;
+  const commissionPercent = body.commissionPercent ? Number(body.commissionPercent) : 20;
 
   if (!username || !code) {
     return NextResponse.json({ error: "Username and code are required." }, { status: 400 });

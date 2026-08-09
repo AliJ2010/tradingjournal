@@ -50,7 +50,7 @@ export default function AdminDashboard() {
 
   const [creatorUsername, setCreatorUsername] = useState("");
   const [creatorCodeInput, setCreatorCodeInput] = useState("");
-  const [creatorCommission, setCreatorCommission] = useState("10");
+  const [creatorCommission, setCreatorCommission] = useState("20");
   const [creatorError, setCreatorError] = useState("");
 
   async function loadAll() {
@@ -170,7 +170,6 @@ export default function AdminDashboard() {
                         className="bg-base-panel2 border border-base-border rounded-md px-2 py-1 text-xs"
                       >
                         <option value="trial">Trial ({status.isExpired ? "expired" : `${status.daysLeft ?? "?"}d left`})</option>
-                        <option value="basic">Basic</option>
                         <option value="monthly">Monthly</option>
                         <option value="lifetime">Lifetime</option>
                         <option value="expired">Expired</option>

@@ -137,7 +137,7 @@ model CreatorCode {
   code              String   @unique
   creatorUserId     String   @unique
   creator           User     @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
-  commissionPercent Int      @default(10)
+  commissionPercent Int      @default(20)
   createdAt         DateTime @default(now())
 
   referrals Referral[]
