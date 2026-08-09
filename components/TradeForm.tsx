@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import PropertyRow from "./PropertyRow";
-import PillBadge, { colorForTag } from "./PillBadge";
+import PillBadge, { colorForTag, colorForEmotion } from "./PillBadge";
 import NewsBanner from "./NewsBanner";
 import ImageDropField from "./ImageDropField";
 import { TRADE_FIELDS, EMOTION_TAG_SUGGESTIONS, type FieldDef } from "@/lib/tradeFields";
@@ -60,11 +60,13 @@ function TagInput({
   onChange,
   suggestions,
   disabled,
+  colorFn = colorForTag,
 }: {
   values: string[];
   onChange: (v: string[]) => void;
   suggestions: string[];
   disabled?: boolean;
+  colorFn?: (tag: string) => ReturnType<typeof colorForTag>;
 }) {
   const [input, setInput] = useState("");
 
@@ -78,7 +80,7 @@ function TagInput({
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {values.map((v) => (
-        <PillBadge key={v} label={v} color={colorForTag(v)} onRemove={disabled ? undefined : () => onChange(values.filter((x) => x !== v))} />
+        <PillBadge key={v} label={v} color={colorFn(v)} onRemove={disabled ? undefined : () => onChange(values.filter((x) => x !== v))} />
       ))}
       {!disabled && (
         <input
@@ -252,6 +254,7 @@ export default function TradeForm({
                     onChange={(v) => set(field.key as any, v as any)}
                     suggestions={field.key === "emotionTags" ? EMOTION_TAG_SUGGESTIONS : []}
                     disabled={readOnly}
+                    colorFn={field.key === "emotionTags" ? colorForEmotion : colorForTag}
                   />
                 )}
 

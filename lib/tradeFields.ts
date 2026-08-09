@@ -1,6 +1,6 @@
 export type FieldType = "select" | "tags" | "text" | "textarea" | "number" | "boolean" | "date" | "time" | "image" | "readonly-tags";
 
-export type PillColor = "red" | "green" | "blue" | "orange" | "gold" | "slate" | "purple" | "teal";
+export type PillColor = "red" | "green" | "blue" | "orange" | "gold" | "slate" | "purple" | "teal" | "pink" | "navy" | "silver";
 
 export type FieldDef = {
   key: string;
@@ -84,6 +84,7 @@ export const EMOTION_TAG_SUGGESTIONS = [
   "Confident",
   "Hesitant",
   "Overconfident",
+  "Breakeven",
 ];
 
 export const DRAW_DIRECTION_SUGGESTIONS = ["IRL -> ERL", "ERL -> IRL", "HTF PD Array", "Range Bound"];

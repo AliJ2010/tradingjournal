@@ -61,19 +61,24 @@ export default function CalendarGrid({
             key={key}
             onClick={() => stat && onSelectDay?.(key)}
             whileHover={stat ? { scale: 1.04 } : {}}
-            className={`aspect-square rounded-lg border ${border} ${bg} ${
+            className={`relative aspect-square rounded-lg border ${border} ${bg} ${
               inMonth ? "" : "opacity-30"
-            } ${isToday ? "ring-2 ring-accent" : ""} flex flex-col items-center justify-center gap-0.5 p-1`}
+            } ${isToday ? "ring-2 ring-accent" : ""} p-1`}
           >
+            <span className="absolute top-1 right-1.5 text-[10px] text-base-muted">{format(day, "d")}</span>
+            {stat && <span className="absolute top-1 left-1.5 text-[10px] text-base-muted">{stat.count}</span>}
             {stat && (
-              <span className={`text-[11px] font-semibold leading-tight ${stat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
+              <span
+                className={`absolute bottom-1 left-1.5 text-[11px] font-semibold leading-tight ${
+                  stat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"
+                }`}
+              >
                 {stat.pnl < 0 ? "-" : ""}${Math.abs(stat.pnl).toFixed(0)}
               </span>
             )}
             {stat && stat.rrs.length > 0 && (
-              <span className="text-[9px] text-base-muted leading-tight">{stat.rrs.join("/")}</span>
+              <span className="absolute bottom-1 right-1.5 text-[9px] text-base-muted leading-tight">RR {stat.rrs.join("/")}</span>
             )}
-            <span className="text-xs text-base-muted">{format(day, "d")}</span>
           </motion.button>
         );
       })}

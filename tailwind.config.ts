@@ -23,6 +23,9 @@ const config: Config = {
           slate: { bg: "#64748b", text: "#f1f5f9" },
           purple: { bg: "#a855f7", text: "#faf5ff" },
           teal: { bg: "#14b8a6", text: "#f0fdfa" },
+          pink: { bg: "#ec4899", text: "#fdf2f8" },
+          navy: { bg: "#1e3a8a", text: "#e0e7ff" },
+          silver: { bg: "#27272a", text: "#d4d4d8" },
         },
         accent: {
           DEFAULT: "#5f5ef5",

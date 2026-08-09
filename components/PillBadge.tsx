@@ -12,6 +12,9 @@ const COLOR_CLASSES: Record<PillColor, string> = {
   slate: "bg-pill-slate-bg text-pill-slate-text",
   purple: "bg-pill-purple-bg text-pill-purple-text shadow-[0_0_16px_-4px_rgba(168,85,247,0.7)]",
   teal: "bg-pill-teal-bg text-pill-teal-text shadow-[0_0_16px_-4px_rgba(20,184,166,0.7)]",
+  pink: "bg-pill-pink-bg text-pill-pink-text shadow-[0_0_16px_-4px_rgba(236,72,153,0.7)]",
+  navy: "bg-pill-navy-bg text-pill-navy-text shadow-[0_0_16px_-4px_rgba(30,58,138,0.7)]",
+  silver: "bg-pill-silver-bg text-pill-silver-text",
 };
 
 export default function PillBadge({
@@ -58,4 +61,18 @@ export function colorForTag(tag: string): PillColor {
   let hash = 0;
   for (let i = 0; i < tag.length; i++) hash = (hash * 31 + tag.charCodeAt(i)) >>> 0;
   return AUTO_COLOR_PALETTE[hash % AUTO_COLOR_PALETTE.length];
+}
+
+const EMOTION_COLORS: Record<string, PillColor> = {
+  breakeven: "gold",
+  fomo: "red",
+  anxious: "pink",
+  "in control": "navy",
+  confident: "green",
+  hesitant: "silver",
+  overconfident: "orange",
+};
+
+export function colorForEmotion(tag: string): PillColor {
+  return EMOTION_COLORS[tag.trim().toLowerCase()] ?? colorForTag(tag);
 }
