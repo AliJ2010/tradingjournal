@@ -29,7 +29,9 @@ export default function DashboardPage() {
 
   const stats = useMemo(() => {
     const sorted = [...trades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const wins = trades.filter((t) => t.result === "Win" || t.result === "Breakeven").length;
+    const pureWins = trades.filter((t) => t.result === "Win").length;
+    const breakevens = trades.filter((t) => t.result === "Breakeven").length;
+    const wins = pureWins + breakevens;
     const losses = trades.filter((t) => t.result === "Loss").length;
     const total = trades.length;
     const winRate = total > 0 ? (wins / total) * 100 : 0;
@@ -67,7 +69,7 @@ export default function DashboardPage() {
       .map(([name, v]) => ({ name, count: v.count, winRate: v.count ? (v.wins / v.count) * 100 : 0, pnl: v.pnl }))
       .sort((a, b) => b.pnl - a.pnl);
 
-    return { wins, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown, instrumentBreakdown };
+    return { wins, pureWins, breakevens, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown, instrumentBreakdown };
   }, [trades]);
 
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading dashboard...</div>;
@@ -83,7 +85,16 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Win rate" value={`${stats.winRate.toFixed(1)}%`} tone="accent" />
-        <StatCard label="Wins / Losses" value={`${stats.wins} / ${stats.losses}`} />
+        <div className="glass-panel border border-base-border rounded-2xl p-5">
+          <div className="text-xs text-base-muted mb-1.5">Wins / BE / Losses</div>
+          <div className="text-2xl font-semibold">
+            <span className="text-pill-green-bg">{stats.pureWins}</span>
+            <span className="text-base-muted"> / </span>
+            <span className="text-pill-gold-bg">{stats.breakevens}</span>
+            <span className="text-base-muted"> / </span>
+            <span className="text-pill-red-bg">{stats.losses}</span>
+          </div>
+        </div>
         <StatCard
           label="Total PnL"
           value={`${stats.totalPnl >= 0 ? "+" : "-"}$${formatMoney(stats.totalPnl, 2)}`}
