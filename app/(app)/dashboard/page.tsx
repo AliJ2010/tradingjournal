@@ -117,10 +117,11 @@ export default function DashboardPage() {
               <LineChart data={stats.equityCurve}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2e" />
                 <XAxis dataKey="index" stroke="#8a8d93" fontSize={12} />
-                <YAxis stroke="#8a8d93" fontSize={12} />
+                <YAxis stroke="#8a8d93" fontSize={12} tickFormatter={(v) => `$${Number(v).toLocaleString()}`} />
                 <Tooltip
                   contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }}
                   labelFormatter={(v) => `Trade #${v}`}
+                  formatter={(v: number) => [`$${v.toLocaleString()}`, "Equity"]}
                 />
                 <Line type="monotone" dataKey="equity" name="Equity" stroke="#6ee0c4" strokeWidth={2} dot={false} />
               </LineChart>
