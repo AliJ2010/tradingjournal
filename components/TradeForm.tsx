@@ -155,6 +155,7 @@ export default function TradeForm({
 }) {
   const [draft, setDraft] = useState<TradeDraft>(initial);
   const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [saveButtonVisible, setSaveButtonVisible] = useState(true);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -181,6 +182,8 @@ export default function TradeForm({
     setSaving(true);
     try {
       await onSave(draft);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
     } finally {
       setSaving(false);
     }
@@ -200,7 +203,7 @@ export default function TradeForm({
             disabled={saving}
             className="fixed top-4 right-4 sm:right-6 z-30 bg-brand-gradient text-white font-semibold rounded-full px-5 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save entry?"}
+            {saving ? "Saving..." : justSaved ? "Saved!" : "Save entry?"}
           </motion.button>
         )}
       </AnimatePresence>
@@ -361,7 +364,7 @@ export default function TradeForm({
             disabled={saving}
             className="bg-brand-gradient text-white font-semibold rounded-lg px-6 py-3 text-base shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save entry"}
+            {saving ? "Saving..." : justSaved ? "Saved!" : "Save entry"}
           </motion.button>
           {onCancel && (
             <button onClick={onCancel} className="text-sm text-base-muted hover:text-base-text px-3 py-2">

@@ -30,9 +30,9 @@ export default function CalendarGrid({
   const today = new Date();
 
   return (
-    <div className="grid grid-cols-7 gap-2">
+    <div className="grid grid-cols-7 gap-3">
       {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-        <div key={d} className="text-xs text-base-muted text-center pb-1">
+        <div key={d} className="text-sm text-base-muted text-center pb-1.5">
           {d}
         </div>
       ))}
@@ -62,29 +62,29 @@ export default function CalendarGrid({
             key={key}
             onClick={() => stat && onSelectDay?.(key)}
             whileHover={stat ? { scale: 1.04 } : {}}
-            className={`relative aspect-square rounded-lg border ${border} ${bg} ${
+            className={`relative aspect-square rounded-xl border ${border} ${bg} ${
               inMonth ? "" : "opacity-30"
-            } ${isToday ? "ring-2 ring-accent" : ""} p-1`}
+            } ${isToday ? "ring-2 ring-accent" : ""} p-1.5`}
           >
-            <span className="absolute top-1 right-1.5 text-sm sm:text-lg font-bold leading-none text-base-text">
+            <span className="absolute top-1.5 right-2 text-base sm:text-2xl font-bold leading-none text-base-text">
               {format(day, "d")}
             </span>
             {stat && (
-              <span className="absolute bottom-1 left-1.5 text-[8px] sm:text-[10px] text-base-muted leading-tight">
+              <span className="absolute bottom-1.5 left-2 text-[10px] sm:text-sm text-base-muted leading-tight">
                 {stat.count} {stat.count === 1 ? "trade" : "trades"}
               </span>
             )}
             {stat && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 pointer-events-none">
                 <span
-                  className={`text-xs sm:text-base font-bold leading-tight ${
+                  className={`text-sm sm:text-xl font-bold leading-tight ${
                     stat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"
                   }`}
                 >
                   {stat.pnl < 0 ? "-" : ""}${Math.abs(stat.pnl).toFixed(0)}
                 </span>
                 {stat.hasRR && (
-                  <span className="text-[8px] sm:text-[10px] text-base-muted leading-tight">{formatNumber(stat.rrSum)} RR</span>
+                  <span className="text-[10px] sm:text-sm text-base-muted leading-tight">{formatNumber(stat.rrSum)} RR</span>
                 )}
               </div>
             )}

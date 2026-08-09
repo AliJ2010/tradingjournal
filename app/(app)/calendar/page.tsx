@@ -48,22 +48,22 @@ export default function CalendarPage() {
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading calendar...</div>;
 
   return (
-    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Calendar</h1>
+    <div className="p-4 sm:p-8 max-w-[96rem] mx-auto">
+      <h1 className="text-3xl font-semibold mb-8">Calendar</h1>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-6 mb-10">
         <StreakCard label="Current streak" value={current} suffix="days" highlight />
         <StreakCard label="Longest streak" value={longest} suffix="days" />
         <StreakCard label="Days logged" value={totalDaysLogged} suffix="total" />
       </div>
 
-      <div className="glass-panel border border-base-border rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={() => setMonth((m) => subMonths(m, 1))} className="text-base-muted hover:text-base-text px-2">
+      <div className="glass-panel border border-base-border rounded-2xl p-9">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => setMonth((m) => subMonths(m, 1))} className="text-lg text-base-muted hover:text-base-text px-3">
             ←
           </button>
-          <span className="font-medium">{format(month, "MMMM yyyy")}</span>
-          <button onClick={() => setMonth((m) => addMonths(m, 1))} className="text-base-muted hover:text-base-text px-2">
+          <span className="text-lg font-semibold">{format(month, "MMMM yyyy")}</span>
+          <button onClick={() => setMonth((m) => addMonths(m, 1))} className="text-lg text-base-muted hover:text-base-text px-3">
             →
           </button>
         </div>
@@ -78,22 +78,22 @@ function StreakCard({ label, value, suffix, highlight }: { label: string; value:
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl p-5 border ${
+      className={`rounded-2xl p-7 border ${
         highlight ? "bg-brand-gradient-soft border-accent/40 shadow-glow" : "glass-panel border-base-border"
       }`}
     >
-      <div className="text-xs text-base-muted mb-1">{label}</div>
-      <div className="flex items-baseline gap-1.5">
+      <div className="text-sm text-base-muted mb-1.5">{label}</div>
+      <div className="flex items-baseline gap-2">
         <motion.span
           key={value}
           initial={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
-          className={`text-3xl font-semibold ${highlight ? "text-accent" : ""}`}
+          className={`text-4xl font-semibold ${highlight ? "text-accent" : ""}`}
         >
           {value}
         </motion.span>
-        {highlight && value > 0 && <span className="text-lg">🔥</span>}
-        <span className="text-sm text-base-muted">{suffix}</span>
+        {highlight && value > 0 && <span className="text-2xl">🔥</span>}
+        <span className="text-base text-base-muted">{suffix}</span>
       </div>
     </motion.div>
   );

@@ -19,19 +19,27 @@ export default function ImageDropField({
 
   const upload = useCallback(async (file: File) => {
     setError("");
+    const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError("Only PNG, JPEG, WEBP, or GIF images are allowed.");
+      return;
+    }
+    const MAX_SIZE = 4 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setError("Image is too large (max 4MB).");
+      return;
+    }
     setUploading(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: form });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Upload failed.");
-      } else {
-        onChange(data.url);
-      }
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      onChange(dataUrl);
     } catch {
-      setError("Upload failed.");
+      setError("Couldn't read that image.");
     }
     setUploading(false);
   }, [onChange]);

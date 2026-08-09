@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { getAnthropicClient, isCoachConfigured, buildCoachSystemPrompt, COACH_MODEL } from "@/lib/anthropic";
 import { parseTags } from "@/lib/json";
-import { readUploadedImageAsBase64 } from "@/lib/imageFile";
+import { parseDataUrl } from "@/lib/imageFile";
 import { getCoachMessageLimit } from "@/lib/plan";
 
 function startOfMonth(d = new Date()) {
@@ -104,21 +104,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "AI Coach is not configured." }, { status: 400 });
   }
 
-  const messagesForClaude = await Promise.all(
-    history.map(async (m) => {
-      const image = m.imageUrl ? await readUploadedImageAsBase64(m.imageUrl) : null;
-      if (!image) {
-        return { role: m.role as "user" | "assistant", content: m.content };
-      }
-      return {
-        role: m.role as "user" | "assistant",
-        content: [
-          { type: "image" as const, source: { type: "base64" as const, media_type: image.mediaType as any, data: image.base64 } },
-          { type: "text" as const, text: m.content },
-        ],
-      };
-    })
-  );
+  const messagesForClaude = history.map((m) => {
+    const image = m.imageUrl ? parseDataUrl(m.imageUrl) : null;
+    if (!image) {
+      return { role: m.role as "user" | "assistant", content: m.content };
+    }
+    return {
+      role: m.role as "user" | "assistant",
+      content: [
+        { type: "image" as const, source: { type: "base64" as const, media_type: image.mediaType as any, data: image.base64 } },
+        { type: "text" as const, text: m.content },
+      ],
+    };
+  });
 
   try {
     const response = await client.messages.create({
