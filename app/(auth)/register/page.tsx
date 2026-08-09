@@ -36,7 +36,7 @@ export default function RegisterPage() {
         setLoading(false);
         return;
       }
-      router.push("/journal");
+      router.push("/dashboard");
       router.refresh();
     } catch {
       setError("Could not reach the server.");

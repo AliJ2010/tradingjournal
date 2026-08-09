@@ -5,7 +5,7 @@ import VerifyEmailForm from "@/components/VerifyEmailForm";
 export default async function VerifyEmailPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.emailVerified) redirect("/journal");
+  if (user.emailVerified) redirect("/dashboard");
 
   return <VerifyEmailForm email={user.email} />;
 }

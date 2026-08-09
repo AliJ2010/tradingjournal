@@ -26,7 +26,7 @@ export default function VerifyEmailForm({ email }: { email: string }) {
       const data = await res.json();
       if (!res.ok) setError(data.error || "Something went wrong.");
       else {
-        router.push("/journal");
+        router.push("/dashboard");
         router.refresh();
       }
     } catch {

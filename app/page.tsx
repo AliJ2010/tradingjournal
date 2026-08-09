@@ -28,7 +28,7 @@ const WHY = [
 
 export default async function Home() {
   const user = await getCurrentUser();
-  if (user) redirect("/journal");
+  if (user) redirect("/dashboard");
 
   return (
     <div className="relative min-h-screen bg-base-bg text-base-text overflow-hidden">
