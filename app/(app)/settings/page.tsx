@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { COUNTRY_TIMEZONES, utcOffsetLabel } from "@/lib/countryTimezones";
 
 type Settings = {
   displayName: string;
@@ -16,18 +17,6 @@ export default function SettingsPage() {
   const [instrument, setInstrument] = useState("");
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
-
-  const timezones = useMemo(() => {
-    let zones: string[];
-    try {
-      // @ts-ignore - available in modern Node/browser runtimes
-      zones = Intl.supportedValuesOf("timeZone") as string[];
-    } catch {
-      zones = ["America/New_York", "America/Chicago", "Europe/London", "Europe/Berlin", "Asia/Tokyo"];
-    }
-    if (!zones.includes("UTC")) zones = ["UTC", ...zones];
-    return [...zones].sort((a, b) => a.localeCompare(b));
-  }, []);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -94,9 +83,12 @@ export default function SettingsPage() {
             onChange={(e) => setTimezone(e.target.value)}
             className="w-full bg-base-panel2 border border-base-border rounded-lg px-3 py-2.5 text-sm focus:border-accent outline-none transition-all"
           >
-            {timezones.map((tz) => (
-              <option key={tz} value={tz}>
-                {tz}
+            {!COUNTRY_TIMEZONES.some((c) => c.zone === timezone) && (
+              <option value={timezone}>{timezone} ({utcOffsetLabel(timezone)})</option>
+            )}
+            {COUNTRY_TIMEZONES.map((c) => (
+              <option key={c.zone} value={c.zone}>
+                {c.label} — {utcOffsetLabel(c.zone)}
               </option>
             ))}
           </select>
