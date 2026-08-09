@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { COUNTRY_TIMEZONES, utcOffsetLabel } from "@/lib/countryTimezones";
+import InstallPwaHint from "@/components/InstallPwaHint";
 
 type Settings = {
   displayName: string;
@@ -51,7 +52,7 @@ export default function SettingsPage() {
   if (!settings) return <div className="p-8 text-base-muted text-sm">Loading settings...</div>;
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-2xl mx-auto">
       <h1 className="text-2xl font-semibold mb-1">Settings</h1>
       <p className="text-sm text-base-muted mb-8">Personalize your journal.</p>
 
@@ -106,6 +107,10 @@ export default function SettingsPage() {
       </motion.div>
 
       {status && <p className="text-sm text-accent mt-4">{status}</p>}
+
+      <div className="mt-8 text-center">
+        <InstallPwaHint />
+      </div>
     </div>
   );
 }

@@ -53,6 +53,7 @@ export default function FriendsPage() {
   const [viewingFriend, setViewingFriend] = useState<{ id: string; displayName: string } | null>(null);
   const [friendTrades, setFriendTrades] = useState<any[]>([]);
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   async function loadLinks() {
     const res = await fetch("/api/friends");
@@ -124,10 +125,16 @@ export default function FriendsPage() {
 
   if (viewingFriend) {
     return (
-      <div className="flex h-screen">
-        <div className="w-72 shrink-0 border-r border-base-border flex flex-col h-screen">
+      <div className="flex flex-col md:flex-row md:h-screen">
+        <div className={`${mobileDetailOpen ? "hidden" : "flex"} md:flex w-full md:w-72 shrink-0 border-r border-base-border flex-col md:h-screen`}>
           <div className="p-4 border-b border-base-border">
-            <button onClick={() => setViewingFriend(null)} className="text-sm text-accent hover:underline mb-2">
+            <button
+              onClick={() => {
+                setViewingFriend(null);
+                setMobileDetailOpen(false);
+              }}
+              className="text-sm text-accent hover:underline mb-2"
+            >
               ← Back to friends
             </button>
             <div className="font-medium">{viewingFriend.displayName}'s journal</div>
@@ -138,7 +145,10 @@ export default function FriendsPage() {
             {friendTrades.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setSelectedTradeId(t.id)}
+                onClick={() => {
+                  setSelectedTradeId(t.id);
+                  setMobileDetailOpen(true);
+                }}
                 className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
                   selectedTradeId === t.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
                 }`}
@@ -151,7 +161,10 @@ export default function FriendsPage() {
             ))}
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className={`${mobileDetailOpen ? "flex" : "hidden"} md:flex flex-1 overflow-y-auto flex-col`}>
+          <button onClick={() => setMobileDetailOpen(false)} className="md:hidden text-sm text-accent px-6 pt-4 text-left">
+            ← Back to entries
+          </button>
           <AnimatePresence mode="wait">{selectedDraft && <TradeForm key={selectedTradeId} initial={selectedDraft} readOnly />}</AnimatePresence>
         </div>
       </div>
@@ -159,7 +172,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-semibold mb-2">Friends</h1>
       <p className="text-sm text-base-muted mb-6">
         Add a friend by their username to see each other's journals and progress. Anything you mark hidden on a trade stays private.

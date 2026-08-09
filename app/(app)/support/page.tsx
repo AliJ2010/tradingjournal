@@ -45,7 +45,7 @@ export default function SupportPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-semibold mb-1">Support</h1>
       <p className="text-sm text-base-muted mb-8">Answers to common questions, or reach out directly below.</p>
 

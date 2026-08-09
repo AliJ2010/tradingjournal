@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import AmbientBackground from "@/components/AmbientBackground";
 import LandingMockup from "@/components/LandingMockup";
 import Logo from "@/components/Logo";
+import InstallPwaHint from "@/components/InstallPwaHint";
 
 const MARKETS = ["NQ", "ES", "YM", "CL", "GC", "Forex", "Crypto", "Stocks"];
 
@@ -33,43 +34,43 @@ export default async function Home() {
     <div className="relative min-h-screen bg-base-bg text-base-text overflow-hidden">
       <AmbientBackground />
 
-      <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-6xl mx-auto">
+      <nav className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-8 py-4 sm:py-6 max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-base-panel2 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-base-panel2 flex items-center justify-center shrink-0">
             <Logo className="w-6 h-6" />
           </div>
           <span className="font-semibold tracking-tight">OpticTrader</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/pricing" className="text-sm text-base-muted hover:text-base-text transition-colors hidden sm:inline">
             Pricing
           </Link>
           <Link href="/support" className="text-sm text-base-muted hover:text-base-text transition-colors hidden sm:inline">
             Support
           </Link>
-          <Link href="/login" className="text-sm px-4 py-2 rounded-lg border border-base-border hover:border-accent/50 transition-colors">
+          <Link href="/login" className="text-sm px-3 sm:px-4 py-2 rounded-lg border border-base-border hover:border-accent/50 transition-colors">
             Sign in
           </Link>
           <Link
             href="/register"
-            className="text-sm px-4 py-2 rounded-lg bg-brand-gradient text-white font-medium shadow-glow hover:brightness-110 transition-all"
+            className="text-sm px-3 sm:px-4 py-2 rounded-lg bg-brand-gradient text-white font-medium shadow-glow hover:brightness-110 transition-all"
           >
             Start free trial
           </Link>
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-5xl mx-auto px-8 pt-16 pb-8 text-center">
-        <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight leading-tight mb-5">
+      <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 pt-10 sm:pt-16 pb-8 text-center">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-5">
           Trade with clarity.
           <br />
           <span className="bg-brand-gradient bg-clip-text text-transparent">See your edge.</span>
         </h1>
-        <p className="text-base-muted text-lg max-w-xl mx-auto mb-9">
+        <p className="text-base-muted text-base sm:text-lg max-w-xl mx-auto mb-9">
           OpticTrader is a trading journal that tracks every setup, catches your patterns, and coaches you toward consistency — with an AI
           that actually knows your history.
         </p>
-        <div className="flex items-center justify-center gap-3 mb-16">
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
           <Link
             href="/register"
             className="px-6 py-3 rounded-lg bg-brand-gradient text-white font-medium shadow-glow hover:brightness-110 transition-all"
@@ -106,7 +107,7 @@ export default async function Home() {
           ))}
         </div>
 
-        <div className="glass-panel border border-accent/30 rounded-2xl p-10 shadow-glow mb-8">
+        <div className="glass-panel border border-accent/30 rounded-2xl p-6 sm:p-10 shadow-glow mb-8">
           <h2 className="text-2xl font-semibold mb-2">Ready to see your edge?</h2>
           <p className="text-base-muted mb-6">5 days free. No card required.</p>
           <Link
@@ -118,10 +119,13 @@ export default async function Home() {
         </div>
       </main>
 
-      <footer className="relative z-10 text-center text-xs text-base-muted pb-8">
-        <Link href="/support" className="hover:text-base-text transition-colors">
-          Support
-        </Link>
+      <footer className="relative z-10 text-center text-xs text-base-muted pb-4 px-4 space-y-2">
+        <div>
+          <Link href="/support" className="hover:text-base-text transition-colors">
+            Support
+          </Link>
+        </div>
+        <InstallPwaHint />
       </footer>
 
     </div>

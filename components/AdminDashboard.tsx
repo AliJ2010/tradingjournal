@@ -135,7 +135,7 @@ export default function AdminDashboard() {
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading admin dashboard...</div>;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-semibold mb-1">🛠️ Admin</h1>
         <p className="text-sm text-base-muted">{users.length} users, {creatorCodes.length} creator codes, {discountCodes.length} discount codes.</p>

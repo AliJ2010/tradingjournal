@@ -51,7 +51,7 @@ export default function PricingPage() {
   const priceNote = isCreator ? "Locked in forever" : "Launch price — limited time";
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
       <h1 className="text-2xl font-semibold mb-1">Pricing</h1>
       <p className="text-sm text-base-muted mb-8">Simple pricing, no surprises. Billing isn't live yet — this is a preview of what's coming.</p>
 

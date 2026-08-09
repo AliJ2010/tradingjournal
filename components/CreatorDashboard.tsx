@@ -22,7 +22,7 @@ export default function CreatorDashboard() {
 
   if (!creatorCode) {
     return (
-      <div className="p-8 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-8 max-w-2xl mx-auto">
         <h1 className="text-2xl font-semibold mb-2">🎬 Creator</h1>
         <p className="text-sm text-base-muted">No creator code has been assigned to your account yet — ask an admin to set one up.</p>
       </div>
@@ -33,7 +33,7 @@ export default function CreatorDashboard() {
   const activePaidCount = creatorCode.referrals.filter((r) => r.referredUser.plan === "monthly" || r.referredUser.plan === "lifetime").length;
 
   return (
-    <div className="p-8 max-w-3xl mx-auto space-y-6">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-semibold mb-1">🎬 Creator dashboard</h1>
         <p className="text-sm text-base-muted">Your referral code and how it's performing.</p>

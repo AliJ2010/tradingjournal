@@ -40,7 +40,7 @@ export default function CalendarPage() {
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading calendar...</div>;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       <h1 className="text-2xl font-semibold mb-6">Calendar</h1>
 
       <div className="grid grid-cols-3 gap-4 mb-8">

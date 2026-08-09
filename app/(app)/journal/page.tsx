@@ -52,6 +52,7 @@ export default function JournalPage() {
   const [draft, setDraft] = useState<TradeDraft | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshStatus, setRefreshStatus] = useState("");
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   const loadTrades = useCallback(async () => {
     const res = await fetch("/api/trades");
@@ -131,11 +132,14 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="flex h-screen">
-      <div className="w-72 shrink-0 border-r border-base-border flex flex-col h-screen">
+    <div className="flex flex-col md:flex-row md:h-screen">
+      <div className={`${mobileDetailOpen ? "hidden" : "flex"} md:flex w-full md:w-72 shrink-0 border-r border-base-border flex-col md:h-screen`}>
         <div className="p-4 border-b border-base-border flex items-center justify-between gap-2">
           <button
-            onClick={() => setSelectedId("new")}
+            onClick={() => {
+              setSelectedId("new");
+              setMobileDetailOpen(true);
+            }}
             className="flex-1 bg-brand-gradient text-white text-sm font-medium rounded-lg py-2 shadow-glow hover:brightness-110 transition-all"
           >
             + New entry
@@ -158,7 +162,10 @@ export default function JournalPage() {
           {trades.map((t) => (
             <button
               key={t.id}
-              onClick={() => setSelectedId(t.id)}
+              onClick={() => {
+                setSelectedId(t.id);
+                setMobileDetailOpen(true);
+              }}
               className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
                 selectedId === t.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
               }`}
@@ -177,7 +184,13 @@ export default function JournalPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className={`${mobileDetailOpen ? "flex" : "hidden"} md:flex flex-1 overflow-y-auto flex-col`}>
+        <button
+          onClick={() => setMobileDetailOpen(false)}
+          className="md:hidden text-sm text-accent px-6 pt-4 text-left"
+        >
+          ← Back to entries
+        </button>
         <AnimatePresence mode="wait">
           {draft && (
             <TradeForm
