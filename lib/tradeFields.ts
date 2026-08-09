@@ -57,7 +57,6 @@ export const TRADE_FIELDS: FieldDef[] = [
   { key: "emotionTags", label: "Emotional State", icon: "smile", type: "tags", hideable: true },
   { key: "rulesFollowed", label: "Rules followed?", icon: "check", type: "boolean", hideable: true },
   { key: "rr", label: "RR", icon: "list", type: "text", hideable: true },
-  { key: "whatOthersDid", label: "What did others do?", icon: "list", type: "textarea", hideable: true },
   { key: "notes", label: "Notes/Reflection", icon: "list", type: "textarea", hideable: true },
   { key: "whatWouldYouDo", label: "What would you do differently?", icon: "list", type: "textarea", hideable: true },
   { key: "chartImageUrl", label: "Chart Screenshot", icon: "image", type: "image", hideable: true },
