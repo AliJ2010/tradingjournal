@@ -1,0 +1,57 @@
+// Known disposable / temporary email providers. Not exhaustive — new ones appear
+// constantly — but this covers the large majority of common trial-abuse tools.
+const DISPOSABLE_DOMAINS = new Set([
+  "mailinator.com", "mailinator.net", "mailinator.org", "mailinator2.com", "tmailinator.com",
+  "guerrillamail.com", "guerrillamail.info", "guerrillamail.biz", "guerrillamail.de", "guerrillamail.net", "guerrillamail.org", "guerrillamailblock.com",
+  "sharklasers.com", "grr.la", "spam4.me", "pokemail.net",
+  "yopmail.com", "yopmail.fr", "yopmail.net", "cool.fr.nf", "jetable.fr.nf",
+  "temp-mail.org", "temp-mail.com", "temp-mail.de", "temp-mail.ru", "tempmail.com", "tempmail.net", "tempmail.de", "tempmailo.com", "tempmail.co", "tempmail.it", "tempmail2.com",
+  "10minutemail.com", "10minutemail.net", "10minutemail.de", "10minemail.com", "20minutemail.com",
+  "throwawaymail.com", "throwam.com", "throwawayemailaddress.com",
+  "trashmail.com", "trashmail.net", "trashmail.me", "trashmail.at", "trashmail.de", "trashmail.org", "trashmail.ws", "trash-mail.com", "trash-mail.de", "trash-mail.at", "trashmailer.com", "trashymail.com", "trashymail.net", "trashdevil.com", "trash2009.com",
+  "mailnesia.com", "mailcatch.com", "mail-temp.com", "dispostable.com", "fakeinbox.com", "fakemailgenerator.com",
+  "getnada.com", "getairmail.com", "mytemp.email", "emailondeck.com", "mohmal.com", "moakt.com",
+  "tempinbox.com", "tempinbox.co.uk", "spamgourmet.com", "mailin8r.com", "tempail.com", "tempalias.com",
+  "temporaryemail.net", "temporaryemail.us", "temporaryinbox.com", "temporaryforwarding.com",
+  "discard.email", "discardmail.com", "discardmail.de",
+  "incognitomail.org", "mintemail.com", "mytrashmail.com", "nowmymail.com",
+  "spambog.com", "spambog.de", "spambog.ru", "spamex.com", "spamfree24.org", "spamfree24.com", "spamfree24.de", "spamfree24.eu", "spamfree24.info", "spamfree24.net",
+  "spamobox.com", "spamspot.com", "superrito.com", "teleworm.us", "teleworm.com",
+  "wegwerfmail.de", "wegwerfmail.net", "wegwerfmail.org", "wegwerfmail.info", "wegwerfemail.de", "wegwerfemail.com", "wegwerfemail.net", "wegwerfemail.org", "wegwerfadresse.de",
+  "einrot.com", "hidemail.de", "hmamail.com", "ieatspam.info",
+  "jourrapide.com", "kurzepost.de", "lortemail.dk", "mail-filter.com", "mailexpire.com", "mailguard.me",
+  "mailscrap.com", "mailseal.de", "mailshell.com", "mailsiphon.com", "mailtemp.info", "mailtothis.com", "mailzilla.com",
+  "meltmail.com", "mierdamail.com", "mt2009.com", "mypartyclip.de", "neomailbox.com",
+  "nervhq.org", "netzidiot.de", "nurfuerspam.de", "objectmail.com", "oneoffemail.com", "onewaymail.com",
+  "ordinaryamerican.net", "outlawspam.com", "ovpn.to", "pancakemail.com", "plexolan.de",
+  "putthisinyourspamdatabase.com", "quickinbox.com", "rcpt.at", "reallymymail.com", "recode.me",
+  "regbypass.com", "rmqkr.net", "royal.net", "rtrtr.com", "safe-mail.net", "sandelf.de", "saynotospams.com",
+  "selfdestructingmail.com", "sendspamhere.com", "shieldedmail.com", "shitmail.me", "shortmail.net",
+  "sneakemail.com", "snkmail.com", "sofort-mail.de", "sogetthis.com",
+  "spam.la", "spam.su", "spamavert.com", "spambox.info", "spamcannon.com",
+  "spamcon.org", "spamday.com", "spamdecoy.net", "spamgoes.in", "spamhereplease.com", "spamhole.com",
+  "spamify.com", "spaminator.de", "spamkill.info", "spammotel.com", "spamoff.de", "spamsalad.in",
+  "spamstack.net", "spamthis.co.uk", "spamthisplease.com", "spamtrail.com", "spikio.com", "spoofmail.de",
+  "streetwisemail.com", "stuffmail.de", "supergreatmail.com", "suremail.info",
+  "tafmail.com", "tagyourself.com", "talkinator.com", "tapchicuoihoi.com", "teewars.org",
+  "tempe-mail.com", "tempemail.biz", "tempemail.com", "tempemail.net", "tempemail.co.za",
+  "temporarily.de", "thankyou2010.com", "thisisnotmyrealemail.com", "tilien.com", "tittbit.in", "tizi.com",
+  "toiea.com", "tokem.co", "toomail.biz", "topranklist.de", "tradermail.info",
+  "trbvm.com", "trickmail.net", "trillianpro.com", "tryalert.com", "turual.com", "tyldd.com",
+  "uggsrock.com", "umail.net", "uroid.com", "veryrealemail.com", "viditag.com",
+  "viewcastmedia.com", "viewcastmedia.net", "viewcastmedia.org", "vpn.st", "vsimcard.com", "vubby.com",
+  "walala.org", "walkmail.net", "webemail.me", "webm4il.info", "weg-werf-email.de",
+  "wetrainbayarea.com", "wetrainbayarea.org", "wh4f.org", "whyspam.me", "willhackforfood.biz", "willselfdestruct.com",
+  "winemaven.info", "wronghead.com", "wuzup.net", "wuzupmail.net", "wwwnew.eu",
+  "xagloo.com", "xemaps.com", "xents.com", "xmaily.com", "xoxy.net", "yep.it",
+  "yogamaven.com", "zippymail.info", "zoemail.net", "zoemail.org", "zomg.info",
+  "burnermail.io", "inboxbear.com", "mail.tm", "moment.co", "email-fake.com",
+  "luxusmail.org", "crazymailing.com", "byom.de", "anonbox.net", "anonymbox.com",
+  "1secmail.com", "1secmail.net", "1secmail.org", "3mail.ga", "emailfake.com", "instant-mail.de",
+]);
+
+export function isDisposableEmail(email: string): boolean {
+  const domain = email.trim().toLowerCase().split("@")[1];
+  if (!domain) return false;
+  return DISPOSABLE_DOMAINS.has(domain);
+}

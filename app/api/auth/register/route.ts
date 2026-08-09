@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { createSessionCookie } from "@/lib/session";
-import { sendWelcomeEmail } from "@/lib/email";
-import { TRIAL_DAYS } from "@/lib/plan";
+import { sendVerificationEmail } from "@/lib/email";
+import { isDisposableEmail } from "@/lib/disposableEmailDomains";
+import crypto from "crypto";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function generateCode() {
+  return crypto.randomInt(100000, 1000000).toString();
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -20,6 +25,9 @@ export async function POST(req: NextRequest) {
   }
   if (!EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+  }
+  if (isDisposableEmail(email)) {
+    return NextResponse.json({ error: "Please use a permanent email address — temporary/disposable providers aren't allowed." }, { status: 400 });
   }
   if (!password || password.length < 6) {
     return NextResponse.json({ error: "Password must be at least 6 characters." }, { status: 400 });
@@ -40,7 +48,6 @@ export async function POST(req: NextRequest) {
   }
 
   const passwordHash = await hashPassword(password);
-  const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
   const user = await prisma.user.create({
     data: {
@@ -48,7 +55,6 @@ export async function POST(req: NextRequest) {
       email,
       passwordHash,
       displayName,
-      trialEndsAt,
       referredByCode: creatorCode ? creatorCode.code : null,
     },
   });
@@ -59,8 +65,13 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const code = generateCode();
+  await prisma.emailVerificationCode.create({
+    data: { userId: user.id, code, expiresAt: new Date(Date.now() + 15 * 60 * 1000) },
+  });
+
   await createSessionCookie({ userId: user.id, username: user.username });
-  sendWelcomeEmail(user.email, user.displayName).catch(() => {});
+  sendVerificationEmail(user.email, user.displayName, code).catch(() => {});
 
   return NextResponse.json({ id: user.id, username: user.username, displayName: user.displayName });
 }

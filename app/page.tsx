@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import AmbientBackground from "@/components/AmbientBackground";
 import LandingMockup from "@/components/LandingMockup";
-import LandingChatWidget from "@/components/LandingChatWidget";
 import Logo from "@/components/Logo";
 
 const MARKETS = ["NQ", "ES", "YM", "CL", "GC", "Forex", "Crypto", "Stocks"];
@@ -125,7 +124,6 @@ export default async function Home() {
         </Link>
       </footer>
 
-      <LandingChatWidget />
     </div>
   );
 }

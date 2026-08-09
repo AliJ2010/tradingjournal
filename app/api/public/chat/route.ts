@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAnthropicClient, isCoachConfigured, COACH_MODEL } from "@/lib/anthropic";
+import { PRICING } from "@/lib/pricing";
 
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
 const MAX_PER_HOUR = 15;
@@ -16,7 +17,7 @@ function checkRateLimit(ip: string) {
   return true;
 }
 
-const SYSTEM_PROMPT = `You are the support assistant on OpticTrader's public marketing website (not logged-in users, just visitors). OpticTrader is a trading journal web app with:
+const SYSTEM_PROMPT = `You are the support assistant on OpticTrader's website, answering questions for both visitors and logged-in users. OpticTrader is a trading journal web app with:
 
 - A journal for logging trades (setup tags, emotional state, entry/exit time, chart screenshots, PnL)
 - A calendar showing win/loss days and a logging streak
@@ -24,9 +25,9 @@ const SYSTEM_PROMPT = `You are the support assistant on OpticTrader's public mar
 - An AI Coach chat that gives personalized feedback based on a trader's logged history, with a monthly message allowance depending on plan
 - A Friends feature to share progress with one other trader, with per-field privacy controls
 - CSV and PDF export of the journal
-- Pricing: Basic $15/mo (50 AI Coach messages/mo), Monthly $30/mo (200 messages/mo, Friends, PDF export), Lifetime $150 one-time (unlimited messages). A 5-day free trial is available on signup. Billing isn't live yet — plans are shown for preview.
+- Pricing: Monthly is listed at $${PRICING.monthly.listed}/mo but discounted to $${PRICING.monthly.discounted}/mo right now (${PRICING.monthly.messagesPerMonth} AI Coach messages/mo, Friends, CSV+PDF export). Lifetime is listed at $${PRICING.lifetime.listed} but discounted to $${PRICING.lifetime.discounted} one-time right now (unlimited AI Coach messages). A 5-day free trial is available on signup, no card required. Billing isn't live yet — plans are shown for preview.
 
-Answer visitor questions about these features and pricing concisely and helpfully. If asked something unrelated to OpticTrader, politely redirect to what OpticTrader does. Never claim to have access to any specific user's data — you're talking to an anonymous visitor.`;
+Answer questions about these features and pricing concisely and helpfully. If asked something unrelated to OpticTrader, politely redirect to what OpticTrader does. Never claim to have access to any specific user's private trading data — you don't have it.`;
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";

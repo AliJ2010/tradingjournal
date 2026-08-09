@@ -8,6 +8,7 @@ import { maybeSendTrialReminder } from "@/lib/plan";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  if (!user.emailVerified) redirect("/verify-email");
 
   void maybeSendTrialReminder(user);
 

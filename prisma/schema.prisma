@@ -18,6 +18,7 @@ model User {
   anthropicApiKey String?
   role            String   @default("user") // "user" | "admin" | "creator"
   plan            String   @default("trial") // "trial" | "monthly" | "lifetime" | "expired"
+  emailVerified   Boolean  @default(false)
   trialEndsAt     DateTime?
   trialReminderSentAt DateTime?
   referredByCode  String?
@@ -43,6 +44,17 @@ model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
   token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())

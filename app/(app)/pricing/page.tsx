@@ -2,19 +2,16 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { PRICING } from "@/lib/pricing";
 
-type Discount = { valid: boolean; percentOff?: number | null; amountOffCents?: number | null };
-
-function applyDiscount(price: number, discount: Discount | null) {
-  if (!discount?.valid) return price;
-  if (discount.percentOff) return Math.max(0, price - (price * discount.percentOff) / 100);
-  if (discount.amountOffCents) return Math.max(0, price - discount.amountOffCents / 100);
-  return price;
-}
+type DiscountResult =
+  | { valid: false }
+  | { valid: true; type: "creator"; creatorUsername: string; monthlyPrice: number; lifetimePrice: number }
+  | { valid: true; type: "generic"; percentOff?: number | null; amountOffCents?: number | null };
 
 export default function PricingPage() {
   const [code, setCode] = useState("");
-  const [discount, setDiscount] = useState<Discount | null>(null);
+  const [discount, setDiscount] = useState<DiscountResult | null>(null);
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -28,29 +25,41 @@ export default function PricingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
       });
-      const data = await res.json();
+      const data: DiscountResult = await res.json();
       setDiscount(data);
-      setMessage(data.valid ? "Code applied." : "That code isn't valid.");
+      if (!data.valid) setMessage("That code isn't valid.");
+      else if (data.type === "creator") setMessage(`Creator code applied — you're locked into this price forever, via @${data.creatorUsername}.`);
+      else setMessage("Code applied.");
     } catch {
       setMessage("Couldn't check that code.");
     }
     setChecking(false);
   }
 
-  const basicPrice = applyDiscount(15, discount);
-  const monthlyPrice = applyDiscount(30, discount);
-  const lifetimePrice = applyDiscount(150, discount);
+  const isCreator = discount?.valid && discount.type === "creator";
+
+  function applyGenericDiscount(price: number) {
+    if (!discount?.valid || discount.type !== "generic") return price;
+    if (discount.percentOff) return Math.max(0, price - (price * discount.percentOff) / 100);
+    if (discount.amountOffCents) return Math.max(0, price - discount.amountOffCents / 100);
+    return price;
+  }
+
+  const monthlyPrice = isCreator ? discount.monthlyPrice : applyGenericDiscount(PRICING.monthly.discounted);
+  const lifetimePrice = isCreator ? discount.lifetimePrice : applyGenericDiscount(PRICING.lifetime.discounted);
+
+  const priceNote = isCreator ? "Locked in forever" : "Launch price — limited time";
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-8 max-w-4xl mx-auto">
       <h1 className="text-2xl font-semibold mb-1">Pricing</h1>
       <p className="text-sm text-base-muted mb-8">Simple pricing, no surprises. Billing isn't live yet — this is a preview of what's coming.</p>
 
-      <div className="flex gap-2 mb-8 max-w-sm">
+      <div className="flex gap-2 mb-3 max-w-sm">
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="Discount code"
+          placeholder="Creator or discount code"
           className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-4 py-2.5 text-sm focus:border-accent focus:shadow-glow outline-none transition-all"
         />
         <button
@@ -62,36 +71,21 @@ export default function PricingPage() {
         </button>
       </div>
       {message && <p className={`text-sm mb-6 ${discount?.valid ? "text-pill-green-bg" : "text-pill-red-bg"}`}>{message}</p>}
+      {!message && <div className="mb-6" />}
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">
-          <div className="text-sm text-base-muted mb-1">Basic</div>
-          <div className="flex items-baseline gap-2 mb-4">
-            {discount?.valid && <span className="text-base-muted line-through text-lg">$15</span>}
-            <span className="text-4xl font-semibold">${basicPrice.toFixed(0)}</span>
-            <span className="text-base-muted text-sm">/ month</span>
-          </div>
-          <ul className="text-sm text-base-muted space-y-2 mb-6">
-            <li>Journal, calendar, dashboard</li>
-            <li>50 AI Coach messages / month</li>
-            <li>CSV export</li>
-          </ul>
-          <button disabled className="w-full bg-base-panel2 border border-base-border rounded-lg py-2.5 text-sm text-base-muted cursor-not-allowed">
-            Coming soon
-          </button>
-        </motion.div>
-
+      <div className="grid md:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">
           <div className="text-sm text-base-muted mb-1">Monthly</div>
-          <div className="flex items-baseline gap-2 mb-4">
-            {discount?.valid && <span className="text-base-muted line-through text-lg">$30</span>}
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-base-muted line-through text-lg">${PRICING.monthly.listed}</span>
             <span className="text-4xl font-semibold">${monthlyPrice.toFixed(0)}</span>
             <span className="text-base-muted text-sm">/ month</span>
           </div>
+          <p className="text-xs text-accent mb-4">{priceNote}</p>
           <ul className="text-sm text-base-muted space-y-2 mb-6">
-            <li>Everything in Basic</li>
-            <li>200 AI Coach messages / month</li>
-            <li>Friends & shared progress, CSV + PDF export</li>
+            <li>Journal, calendar, dashboard, Friends</li>
+            <li>{PRICING.monthly.messagesPerMonth} AI Coach messages / month</li>
+            <li>CSV + PDF export</li>
           </ul>
           <button disabled className="w-full bg-base-panel2 border border-base-border rounded-lg py-2.5 text-sm text-base-muted cursor-not-allowed">
             Coming soon
@@ -105,11 +99,12 @@ export default function PricingPage() {
         >
           <div className="absolute -top-3 right-6 bg-brand-gradient text-white text-xs font-medium px-2.5 py-1 rounded-full">Best value</div>
           <div className="text-sm text-base-muted mb-1">Lifetime</div>
-          <div className="flex items-baseline gap-2 mb-4">
-            {discount?.valid && <span className="text-base-muted line-through text-lg">$150</span>}
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-base-muted line-through text-lg">${PRICING.lifetime.listed}</span>
             <span className="text-4xl font-semibold">${lifetimePrice.toFixed(0)}</span>
             <span className="text-base-muted text-sm">one-time</span>
           </div>
+          <p className="text-xs text-accent mb-4">{priceNote}</p>
           <ul className="text-sm text-base-muted space-y-2 mb-6">
             <li>Everything in Monthly, forever</li>
             <li>Unlimited AI Coach messages</li>

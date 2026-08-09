@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Logo from "./Logo";
+import MarkdownMessage from "./MarkdownMessage";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-export default function LandingChatWidget() {
+export default function SupportChatWidget() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -16,6 +19,8 @@ export default function LandingChatWidget() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open]);
+
+  if (pathname?.startsWith("/coach")) return null;
 
   async function send() {
     const text = input.trim();
@@ -70,11 +75,11 @@ export default function LandingChatWidget() {
               {messages.map((m, i) => (
                 <div
                   key={i}
-                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
-                    m.role === "user" ? "bg-brand-gradient text-white ml-auto" : "bg-base-panel2"
+                  className={`max-w-[85%] rounded-xl px-3 py-2 ${
+                    m.role === "user" ? "bg-brand-gradient text-white ml-auto text-sm whitespace-pre-wrap" : "bg-base-panel2"
                   }`}
                 >
-                  {m.content}
+                  {m.role === "user" ? m.content : <MarkdownMessage content={m.content} />}
                 </div>
               ))}
               {sending && <div className="text-xs text-base-muted">Typing...</div>}

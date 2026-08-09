@@ -67,6 +67,21 @@ function emailShell({ heading, bodyHtml, ctaLabel, ctaUrl }: { heading: string; 
 </div>`;
 }
 
+export function sendVerificationEmail(to: string, displayName: string, code: string) {
+  return sendEmail(
+    to,
+    `${code} is your OpticTrader verification code`,
+    emailShell({
+      heading: `One quick step, ${displayName}`,
+      bodyHtml: `<p>Enter this code to confirm your email and start your 5-day free trial:</p>
+        <p style="text-align:center;margin:20px 0;">
+          <span style="display:inline-block;background:#eef0fb;color:#1a1730;font-size:28px;font-weight:700;letter-spacing:0.15em;padding:14px 28px;border-radius:10px;">${code}</span>
+        </p>
+        <p>This code expires in 15 minutes. If you didn't sign up for OpticTrader, you can ignore this email.</p>`,
+    })
+  );
+}
+
 export function sendWelcomeEmail(to: string, displayName: string) {
   const baseUrl = getBaseUrl();
   return sendEmail(
