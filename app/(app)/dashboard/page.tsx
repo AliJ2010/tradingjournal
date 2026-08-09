@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { StatCard } from "@/components/StatCards";
 import { parseTags } from "@/lib/json";
+import { formatMoney } from "@/lib/pnl";
 
 type Trade = {
   id: string;
@@ -83,8 +84,16 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Win rate" value={`${stats.winRate.toFixed(1)}%`} tone="accent" />
         <StatCard label="Wins / Losses" value={`${stats.wins} / ${stats.losses}`} />
-        <StatCard label="Total PnL" value={`${stats.totalPnl >= 0 ? "+" : ""}$${stats.totalPnl.toFixed(2)}`} tone={stats.totalPnl >= 0 ? "green" : "red"} />
-        <StatCard label="Avg PnL / trade" value={`${stats.avgPnl >= 0 ? "+" : ""}$${stats.avgPnl.toFixed(2)}`} tone={stats.avgPnl >= 0 ? "green" : "red"} />
+        <StatCard
+          label="Total PnL"
+          value={`${stats.totalPnl >= 0 ? "+" : "-"}$${formatMoney(stats.totalPnl, 2)}`}
+          tone={stats.totalPnl >= 0 ? "green" : "red"}
+        />
+        <StatCard
+          label="Avg PnL / trade"
+          value={`${stats.avgPnl >= 0 ? "+" : "-"}$${formatMoney(stats.avgPnl, 2)}`}
+          tone={stats.avgPnl >= 0 ? "green" : "red"}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -171,7 +180,7 @@ export default function DashboardPage() {
                     <td className="py-2 text-right text-base-muted">{inst.count}</td>
                     <td className="py-2 text-right text-base-muted">{inst.winRate.toFixed(0)}%</td>
                     <td className={`py-2 text-right font-semibold ${inst.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-                      {inst.pnl < 0 ? "-" : "+"}${Math.abs(inst.pnl).toFixed(2)}
+                      {inst.pnl < 0 ? "-" : "+"}${formatMoney(inst.pnl, 2)}
                     </td>
                   </tr>
                 ))}

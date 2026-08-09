@@ -7,6 +7,7 @@ import PillBadge from "@/components/PillBadge";
 import ExportButtons from "@/components/ExportButtons";
 import { toDayKey } from "@/lib/streak";
 import { parseTags } from "@/lib/json";
+import { formatMoney } from "@/lib/pnl";
 
 type TradeRow = {
   id: string;
@@ -220,7 +221,7 @@ export default function JournalPage() {
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className={`text-xs ${pnlColor}`}>
-                      {totalPnl < 0 ? "-" : ""}${Math.abs(totalPnl).toFixed(2)}
+                      {totalPnl < 0 ? "-" : ""}${formatMoney(totalPnl, 2)}
                     </span>
                     <button
                       onClick={(e) => {
@@ -270,7 +271,7 @@ export default function JournalPage() {
                                   : "text-base-muted"
                               }
                             >
-                              {t.pnl < 0 ? "-" : ""}${Math.abs(t.pnl).toFixed(2)}
+                              {t.pnl < 0 ? "-" : ""}${formatMoney(t.pnl, 2)}
                             </span>
                           </button>
                         ))}

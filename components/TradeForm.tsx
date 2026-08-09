@@ -340,7 +340,11 @@ export default function TradeForm({
                               : "slate") as any)
                           : "blue"
                       }
-                      label={field.key === "riskPercent" ? `$${draft.riskPercent.toFixed(2)}` : `$${draft.pnl.toFixed(2)}`}
+                      label={
+                        field.key === "riskPercent"
+                          ? `$${draft.riskPercent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : `$${draft.pnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      }
                     />
                   ) : (
                     <input
