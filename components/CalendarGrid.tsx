@@ -11,8 +11,9 @@ import {
   isSameDay,
   format,
 } from "date-fns";
+import { formatNumber } from "@/lib/rr";
 
-export type DayStat = { count: number; pnl: number; wins: number; losses: number; rrs: string[] };
+export type DayStat = { count: number; pnl: number; wins: number; losses: number; rrSum: number; hasRR: boolean };
 
 export default function CalendarGrid({
   month,
@@ -65,19 +66,27 @@ export default function CalendarGrid({
               inMonth ? "" : "opacity-30"
             } ${isToday ? "ring-2 ring-accent" : ""} p-1`}
           >
-            <span className="absolute top-1 right-1.5 text-[10px] text-base-muted">{format(day, "d")}</span>
-            {stat && <span className="absolute top-1 left-1.5 text-[10px] text-base-muted">{stat.count}</span>}
+            <span className="absolute top-1 right-1.5 text-sm sm:text-lg font-bold leading-none text-base-text">
+              {format(day, "d")}
+            </span>
             {stat && (
-              <span
-                className={`absolute bottom-1 left-1.5 text-[11px] font-semibold leading-tight ${
-                  stat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"
-                }`}
-              >
-                {stat.pnl < 0 ? "-" : ""}${Math.abs(stat.pnl).toFixed(0)}
+              <span className="absolute bottom-1 left-1.5 text-[8px] sm:text-[10px] text-base-muted leading-tight">
+                {stat.count} {stat.count === 1 ? "trade" : "trades"}
               </span>
             )}
-            {stat && stat.rrs.length > 0 && (
-              <span className="absolute bottom-1 right-1.5 text-[9px] text-base-muted leading-tight">RR {stat.rrs.join("/")}</span>
+            {stat && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
+                <span
+                  className={`text-xs sm:text-base font-bold leading-tight ${
+                    stat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"
+                  }`}
+                >
+                  {stat.pnl < 0 ? "-" : ""}${Math.abs(stat.pnl).toFixed(0)}
+                </span>
+                {stat.hasRR && (
+                  <span className="text-[8px] sm:text-[10px] text-base-muted leading-tight">{formatNumber(stat.rrSum)} RR</span>
+                )}
+              </div>
             )}
           </motion.button>
         );

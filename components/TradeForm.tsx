@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import PropertyRow from "./PropertyRow";
 import PillBadge, { colorForTag, colorForEmotion } from "./PillBadge";
 import NewsBanner from "./NewsBanner";
@@ -155,8 +155,18 @@ export default function TradeForm({
 }) {
   const [draft, setDraft] = useState<TradeDraft>(initial);
   const [saving, setSaving] = useState(false);
+  const [saveButtonVisible, setSaveButtonVisible] = useState(true);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => setDraft(initial), [initial]);
+
+  useEffect(() => {
+    if (readOnly || !onSave || !saveButtonRef.current) return;
+    const el = saveButtonRef.current;
+    const observer = new IntersectionObserver(([entry]) => setSaveButtonVisible(entry.isIntersecting), { threshold: 0.5 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [readOnly, onSave, draft.id]);
 
   function set<K extends keyof TradeDraft>(key: K, value: TradeDraft[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -180,6 +190,21 @@ export default function TradeForm({
 
   return (
     <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>
+      <AnimatePresence>
+        {!readOnly && onSave && !saveButtonVisible && (
+          <motion.button
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            onClick={handleSave}
+            disabled={saving}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-30 bg-brand-gradient text-white font-semibold rounded-full px-5 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
+          >
+            {saving ? "Saving..." : "Save entry?"}
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       <div className="px-6 pt-6 pb-2">
         <div className="text-2xl font-semibold tracking-tight">
           {new Date(draft.date).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
@@ -330,10 +355,11 @@ export default function TradeForm({
       {!readOnly && (
         <div className="px-6 pb-8 flex items-center gap-3">
           <motion.button
+            ref={saveButtonRef}
             whileTap={{ scale: 0.98 }}
             onClick={handleSave}
             disabled={saving}
-            className="bg-brand-gradient text-white font-medium rounded-lg px-4 py-2 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
+            className="bg-brand-gradient text-white font-semibold rounded-lg px-6 py-3 text-base shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save entry"}
           </motion.button>
@@ -343,7 +369,10 @@ export default function TradeForm({
             </button>
           )}
           {onDelete && (
-            <button onClick={onDelete} className="ml-auto text-sm text-pill-red-bg hover:underline px-3 py-2">
+            <button
+              onClick={onDelete}
+              className="ml-auto text-base font-medium text-pill-red-bg border border-pill-red-bg/40 rounded-lg px-5 py-3 hover:bg-pill-red-bg/10 transition-colors"
+            >
               Delete entry
             </button>
           )}

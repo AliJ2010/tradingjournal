@@ -5,8 +5,8 @@ export function isEmailConfigured() {
 }
 
 export function getBaseUrl() {
-  if (process.env.RAILWAY_PUBLIC_DOMAIN) return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
   if (process.env.APP_URL) return process.env.APP_URL;
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
   return "http://localhost:3000";
 }
 

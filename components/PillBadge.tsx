@@ -64,7 +64,6 @@ export function colorForTag(tag: string): PillColor {
 }
 
 const EMOTION_COLORS: Record<string, PillColor> = {
-  breakeven: "gold",
   fomo: "red",
   anxious: "pink",
   "in control": "navy",

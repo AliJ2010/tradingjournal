@@ -5,7 +5,7 @@ export default function LandingMockup() {
         <span className="w-2.5 h-2.5 rounded-full bg-pill-red-bg/70" />
         <span className="w-2.5 h-2.5 rounded-full bg-pill-gold-bg/70" />
         <span className="w-2.5 h-2.5 rounded-full bg-pill-green-bg/70" />
-        <span className="ml-3 text-xs text-base-muted">optictrader.app/journal</span>
+        <span className="ml-3 text-xs text-base-muted">optictrader.me/journal</span>
       </div>
 
       <div className="grid md:grid-cols-2 gap-px bg-base-border">

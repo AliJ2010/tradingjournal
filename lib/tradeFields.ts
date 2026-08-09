@@ -21,7 +21,7 @@ export const TRADE_FIELDS: FieldDef[] = [
     options: [
       { value: "Win", color: "green" },
       { value: "Loss", color: "red" },
-      { value: "Breakeven", color: "slate" },
+      { value: "Breakeven", color: "gold" },
     ],
   },
   {
@@ -84,7 +84,6 @@ export const EMOTION_TAG_SUGGESTIONS = [
   "Confident",
   "Hesitant",
   "Overconfident",
-  "Breakeven",
 ];
 
 export const DRAW_DIRECTION_SUGGESTIONS = ["IRL -> ERL", "ERL -> IRL", "HTF PD Array", "Range Bound"];
