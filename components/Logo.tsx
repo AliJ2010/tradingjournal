@@ -1,9 +1,4 @@
-import { OpticLogoMarks } from "@/lib/opticLogo";
-
 export default function Logo({ className = "w-8 h-8" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 100" fill="none" className={className}>
-      <OpticLogoMarks />
-    </svg>
-  );
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/optictrader-logo.png" alt="OpticTrader" className={`${className} object-contain`} />;
 }

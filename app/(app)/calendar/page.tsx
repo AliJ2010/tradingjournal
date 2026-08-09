@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { addMonths, subMonths, format } from "date-fns";
+import { addMonths, subMonths, format, isSameMonth, parseISO } from "date-fns";
 import CalendarGrid, { type DayStat } from "@/components/CalendarGrid";
 import { computeStreaks, toDayKey } from "@/lib/streak";
 import { parseRRMagnitude } from "@/lib/rr";
@@ -25,15 +25,17 @@ export default function CalendarPage() {
     const map: Record<string, DayStat> = {};
     for (const t of trades) {
       const key = toDayKey(t.date);
-      if (!map[key]) map[key] = { count: 0, pnl: 0, wins: 0, losses: 0, rrSum: 0, hasRR: false };
+      if (!map[key]) map[key] = { count: 0, pnl: 0, wins: 0, losses: 0, rrSum: 0, hasRR: false, hasBreakeven: false };
       map[key].count += 1;
       map[key].pnl += t.pnl;
-      if (t.result === "Win") map[key].wins += 1;
+      const countsAsWin = t.result === "Win" || t.result === "Breakeven";
+      if (countsAsWin) map[key].wins += 1;
       if (t.result === "Loss") map[key].losses += 1;
+      if (t.result === "Breakeven") map[key].hasBreakeven = true;
       if (t.rr && t.rr.trim()) {
         const mag = parseRRMagnitude(t.rr);
         if (mag !== null) {
-          map[key].rrSum += t.result === "Loss" ? -mag : t.result === "Win" ? mag : 0;
+          map[key].rrSum += t.result === "Loss" ? -mag : countsAsWin ? mag : 0;
           map[key].hasRR = true;
         }
       }
@@ -45,25 +47,34 @@ export default function CalendarPage() {
 
   const totalDaysLogged = Object.keys(statsByDay).length;
 
+  const monthTotal = useMemo(() => {
+    return Object.entries(statsByDay).reduce((sum, [key, stat]) => (isSameMonth(parseISO(key), month) ? sum + stat.pnl : sum), 0);
+  }, [statsByDay, month]);
+
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading calendar...</div>;
 
   return (
-    <div className="p-4 sm:p-8 max-w-[96rem] mx-auto">
-      <h1 className="text-3xl font-semibold mb-8">Calendar</h1>
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
+      <h1 className="text-2xl font-semibold mb-6">PnL Calendar</h1>
 
-      <div className="grid grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-3 gap-4 mb-8">
         <StreakCard label="Current streak" value={current} suffix="days" highlight />
         <StreakCard label="Longest streak" value={longest} suffix="days" />
         <StreakCard label="Days logged" value={totalDaysLogged} suffix="total" />
       </div>
 
-      <div className="glass-panel border border-base-border rounded-2xl p-9">
-        <div className="flex items-center justify-between mb-6">
-          <button onClick={() => setMonth((m) => subMonths(m, 1))} className="text-lg text-base-muted hover:text-base-text px-3">
+      <div className="glass-panel border border-base-border rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => setMonth((m) => subMonths(m, 1))} className="text-base-muted hover:text-base-text px-2">
             ←
           </button>
-          <span className="text-lg font-semibold">{format(month, "MMMM yyyy")}</span>
-          <button onClick={() => setMonth((m) => addMonths(m, 1))} className="text-lg text-base-muted hover:text-base-text px-3">
+          <div className="text-center">
+            <div className="font-medium">{format(month, "MMMM yyyy")}</div>
+            <div className={`text-xs font-semibold ${monthTotal >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
+              {monthTotal < 0 ? "-" : ""}${Math.abs(monthTotal).toFixed(0)} this month
+            </div>
+          </div>
+          <button onClick={() => setMonth((m) => addMonths(m, 1))} className="text-base-muted hover:text-base-text px-2">
             →
           </button>
         </div>
@@ -78,22 +89,22 @@ function StreakCard({ label, value, suffix, highlight }: { label: string; value:
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl p-7 border ${
+      className={`rounded-2xl p-5 border ${
         highlight ? "bg-brand-gradient-soft border-accent/40 shadow-glow" : "glass-panel border-base-border"
       }`}
     >
-      <div className="text-sm text-base-muted mb-1.5">{label}</div>
-      <div className="flex items-baseline gap-2">
+      <div className="text-xs text-base-muted mb-1">{label}</div>
+      <div className="flex items-baseline gap-1.5">
         <motion.span
           key={value}
           initial={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
-          className={`text-4xl font-semibold ${highlight ? "text-accent" : ""}`}
+          className={`text-3xl font-semibold ${highlight ? "text-accent" : ""}`}
         >
           {value}
         </motion.span>
-        {highlight && value > 0 && <span className="text-2xl">🔥</span>}
-        <span className="text-base text-base-muted">{suffix}</span>
+        {highlight && value > 0 && <span className="text-lg">🔥</span>}
+        <span className="text-sm text-base-muted">{suffix}</span>
       </div>
     </motion.div>
   );

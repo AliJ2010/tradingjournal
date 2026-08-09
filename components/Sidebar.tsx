@@ -9,7 +9,7 @@ import Logo from "./Logo";
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
   { href: "/journal", label: "Journal", icon: "📓" },
-  { href: "/calendar", label: "Calendar", icon: "🗓️" },
+  { href: "/calendar", label: "PnL Calendar", icon: "🗓️" },
   { href: "/news", label: "News", icon: "📰" },
   { href: "/coach", label: "AI Coach", icon: "🧠" },
   { href: "/friends", label: "Friends", icon: "🤝" },

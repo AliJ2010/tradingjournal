@@ -34,7 +34,7 @@ export default function DashboardPage() {
 
   const stats = useMemo(() => {
     const sorted = [...trades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const wins = trades.filter((t) => t.result === "Win").length;
+    const wins = trades.filter((t) => t.result === "Win" || t.result === "Breakeven").length;
     const losses = trades.filter((t) => t.result === "Loss").length;
     const total = trades.length;
     const winRate = total > 0 ? (wins / total) * 100 : 0;
