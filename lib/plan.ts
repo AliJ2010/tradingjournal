@@ -1,3 +1,6 @@
+import { prisma } from "./db";
+import { sendTrialEndingEmail } from "./email";
+
 export type PlanStatus = {
   plan: string;
   isTrialActive: boolean;
@@ -25,3 +28,20 @@ export function getPlanStatus(user: { plan: string; trialEndsAt: Date | string |
 }
 
 export const TRIAL_DAYS = 5;
+
+export async function maybeSendTrialReminder(user: {
+  id: string;
+  email: string;
+  displayName: string;
+  plan: string;
+  trialEndsAt: Date | null;
+  trialReminderSentAt: Date | null;
+}) {
+  if (user.plan !== "trial" || user.trialReminderSentAt) return;
+
+  const status = getPlanStatus(user);
+  if (!status.isTrialActive || status.daysLeft === null || status.daysLeft > 1) return;
+
+  await prisma.user.update({ where: { id: user.id }, data: { trialReminderSentAt: new Date() } });
+  await sendTrialEndingEmail(user.email, user.displayName, status.daysLeft).catch(() => {});
+}

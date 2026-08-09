@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import MarkdownMessage from "@/components/MarkdownMessage";
 
 type Msg = { id: string; role: string; content: string; imageUrl?: string | null; createdAt: string };
@@ -86,11 +85,7 @@ export default function CoachPage() {
 
       {!configured && (
         <div className="m-6 bg-pill-orange-bg/10 border border-pill-orange-bg/40 rounded-xl p-4 text-sm">
-          No Anthropic API key configured. Add one on the{" "}
-          <Link href="/settings" className="text-accent hover:underline">
-            Settings page
-          </Link>{" "}
-          to enable the coach.
+          The AI Coach isn't configured yet — an admin needs to set an Anthropic API key for the server.
         </div>
       )}
 

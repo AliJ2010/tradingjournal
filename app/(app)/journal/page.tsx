@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TradeForm, { emptyDraft, type TradeDraft } from "@/components/TradeForm";
 import PillBadge from "@/components/PillBadge";
+import ExportButtons from "@/components/ExportButtons";
 
 type TradeRow = {
   id: string;
@@ -147,6 +148,10 @@ export default function JournalPage() {
           </button>
         </div>
         {refreshStatus && <div className="px-4 pb-2 text-xs text-base-muted">{refreshStatus}</div>}
+        <div className="px-4 py-2 flex items-center justify-between border-t border-base-border">
+          <span className="text-xs text-base-muted">Export journal</span>
+          <ExportButtons />
+        </div>
 
         <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-1">
           {trades.length === 0 && <p className="px-3 text-sm text-base-muted">No entries yet. Log your first trade.</p>}

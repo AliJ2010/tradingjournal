@@ -209,7 +209,12 @@ export default function FriendsPage() {
       )}
 
       <Section title="Your friends">
-        {accepted.length === 0 && <p className="text-sm text-base-muted">No friends yet.</p>}
+        {accepted.length === 0 && (
+          <div className="px-4 py-8 text-center text-sm text-base-muted">
+            <div className="text-2xl mb-2">🤝</div>
+            No friends yet — send a request above to get started.
+          </div>
+        )}
         {accepted.map((l) => (
           <Row key={l.id}>
             <span>{l.friend.displayName} (@{l.friend.username})</span>

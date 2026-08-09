@@ -35,10 +35,13 @@ type CreatorCode = {
   _count: { referrals: number };
 };
 
+type SupportMessage = { id: string; name: string; email: string; message: string; createdAt: string };
+
 export default function AdminDashboard() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([]);
   const [creatorCodes, setCreatorCodes] = useState<CreatorCode[]>([]);
+  const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [newCode, setNewCode] = useState("");
@@ -51,14 +54,16 @@ export default function AdminDashboard() {
   const [creatorError, setCreatorError] = useState("");
 
   async function loadAll() {
-    const [u, d, c] = await Promise.all([
+    const [u, d, c, s] = await Promise.all([
       fetch("/api/admin/users").then((r) => r.json()),
       fetch("/api/admin/discount-codes").then((r) => r.json()),
       fetch("/api/admin/creator-codes").then((r) => r.json()),
+      fetch("/api/admin/support").then((r) => r.json()),
     ]);
     setUsers(u);
     setDiscountCodes(d);
     setCreatorCodes(c);
+    setSupportMessages(s);
     setLoading(false);
   }
 
@@ -268,6 +273,22 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
       </div>
+
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">
+        <h2 className="text-sm font-semibold mb-4">Support messages</h2>
+        {supportMessages.length === 0 && <p className="text-sm text-base-muted">No messages yet.</p>}
+        <div className="space-y-3">
+          {supportMessages.map((m) => (
+            <div key={m.id} className="border border-base-border rounded-lg p-3 text-sm">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium">{m.name} <span className="text-base-muted">({m.email})</span></span>
+                <span className="text-xs text-base-muted">{new Date(m.createdAt).toLocaleString()}</span>
+              </div>
+              <p className="text-base-muted">{m.message}</p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }

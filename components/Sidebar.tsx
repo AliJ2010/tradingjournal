@@ -67,6 +67,15 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
 
       <div className="p-3 border-t border-base-border space-y-1">
         <Link
+          href="/support"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+            pathname?.startsWith("/support") ? "text-base-text bg-base-panel2 font-medium" : "text-base-muted hover:text-base-text hover:bg-base-panel2"
+          }`}
+        >
+          <span>❓</span>
+          <span>Support</span>
+        </Link>
+        <Link
           href="/settings"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
             pathname?.startsWith("/settings") ? "text-base-text bg-base-panel2 font-medium" : "text-base-muted hover:text-base-text hover:bg-base-panel2"

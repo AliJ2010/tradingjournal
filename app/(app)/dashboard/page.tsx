@@ -64,15 +64,6 @@ export default function DashboardPage() {
 
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading dashboard...</div>;
 
-  if (stats.total === 0) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
-        <p className="text-base-muted text-sm">Log a few trades on the Journal page and your stats will show up here.</p>
-      </div>
-    );
-  }
-
   const pieData = [
     { name: "Wins", value: stats.wins, color: "#3f8f6b" },
     { name: "Losses", value: stats.losses, color: "#c14f63" },
@@ -92,32 +83,40 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 glass-panel border border-base-border rounded-2xl p-6">
           <h2 className="text-sm font-medium text-base-muted mb-4">Equity curve</h2>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={stats.equityCurve}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2e" />
-              <XAxis dataKey="index" stroke="#8a8d93" fontSize={12} />
-              <YAxis stroke="#8a8d93" fontSize={12} />
-              <Tooltip
-                contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }}
-                labelFormatter={(v) => `Trade #${v}`}
-              />
-              <Line type="monotone" dataKey="equity" stroke="#6ee0c4" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          {stats.total === 0 ? (
+            <div className="h-[260px] flex items-center justify-center text-sm text-base-muted">Log a trade to see your equity curve.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={stats.equityCurve}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2e" />
+                <XAxis dataKey="index" stroke="#8a8d93" fontSize={12} />
+                <YAxis stroke="#8a8d93" fontSize={12} />
+                <Tooltip
+                  contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }}
+                  labelFormatter={(v) => `Trade #${v}`}
+                />
+                <Line type="monotone" dataKey="equity" stroke="#6ee0c4" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         <div className="glass-panel border border-base-border rounded-2xl p-6">
           <h2 className="text-sm font-medium text-base-muted mb-4">Win / Loss</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} paddingAngle={3}>
-                {pieData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }} />
-            </PieChart>
-          </ResponsiveContainer>
+          {stats.total === 0 ? (
+            <div className="h-[220px] flex items-center justify-center text-sm text-base-muted">No trades yet.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} paddingAngle={3}>
+                  {pieData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
           <div className="flex justify-center gap-4 text-xs text-base-muted mt-2">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-pill-green-bg inline-block" /> Wins

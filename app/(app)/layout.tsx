@@ -3,10 +3,13 @@ import { getCurrentUser } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
 import AmbientBackground from "@/components/AmbientBackground";
 import TrialBanner from "@/components/TrialBanner";
+import { maybeSendTrialReminder } from "@/lib/plan";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  void maybeSendTrialReminder(user);
 
   return (
     <div className="flex min-h-screen bg-base-bg text-base-text relative">

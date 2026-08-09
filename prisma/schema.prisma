@@ -19,6 +19,7 @@ model User {
   role            String   @default("user") // "user" | "admin" | "creator"
   plan            String   @default("trial") // "trial" | "monthly" | "lifetime" | "expired"
   trialEndsAt     DateTime?
+  trialReminderSentAt DateTime?
   referredByCode  String?
   createdAt       DateTime @default(now())
 
@@ -28,6 +29,14 @@ model User {
   receivedRequests FriendLink[]   @relation("Receiver")
   creatorCode      CreatorCode?
   referral         Referral?
+}
+
+model SupportMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
 }
 
 model Trade {

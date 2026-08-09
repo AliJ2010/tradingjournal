@@ -7,8 +7,6 @@ type Settings = {
   displayName: string;
   timezone: string;
   instrument: string;
-  hasApiKey: boolean;
-  apiKeyPreview: string | null;
 };
 
 export default function SettingsPage() {
@@ -16,17 +14,19 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState("");
   const [timezone, setTimezone] = useState("UTC");
   const [instrument, setInstrument] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
 
   const timezones = useMemo(() => {
+    let zones: string[];
     try {
       // @ts-ignore - available in modern Node/browser runtimes
-      return Intl.supportedValuesOf("timeZone") as string[];
+      zones = Intl.supportedValuesOf("timeZone") as string[];
     } catch {
-      return ["UTC", "America/New_York", "America/Chicago", "Europe/London", "Europe/Berlin", "Asia/Tokyo"];
+      zones = ["America/New_York", "America/Chicago", "Europe/London", "Europe/Berlin", "Asia/Tokyo"];
     }
+    if (!zones.includes("UTC")) zones = ["UTC", ...zones];
+    return [...zones].sort((a, b) => a.localeCompare(b));
   }, []);
 
   useEffect(() => {
@@ -52,7 +52,6 @@ export default function SettingsPage() {
     setSaving(false);
     if (res.ok) {
       setSettings(data);
-      setApiKey("");
       setStatus("Saved.");
       setTimeout(() => setStatus(""), 2500);
     } else {
@@ -112,44 +111,6 @@ export default function SettingsPage() {
         >
           {saving ? "Saving..." : "Save changes"}
         </motion.button>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-panel border border-base-border rounded-2xl p-6 mt-6 space-y-4"
-      >
-        <div>
-          <h2 className="text-sm font-semibold mb-1">AI Coach — Anthropic API key</h2>
-          <p className="text-xs text-base-muted">
-            {settings.hasApiKey ? `Current key: ${settings.apiKeyPreview}` : "No key set — the coach will fall back to the server's key if one is configured."}
-          </p>
-        </div>
-        <input
-          type="password"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          placeholder="sk-ant-..."
-          className="w-full bg-base-panel2 border border-base-border rounded-lg px-3 py-2.5 text-sm focus:border-accent focus:shadow-glow outline-none transition-all"
-        />
-        <div className="flex gap-2">
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={() => apiKey && save({ anthropicApiKey: apiKey })}
-            disabled={saving || !apiKey}
-            className="bg-brand-gradient text-white font-medium rounded-lg px-4 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-50"
-          >
-            Save key
-          </motion.button>
-          {settings.hasApiKey && (
-            <button
-              onClick={() => save({ clearApiKey: true })}
-              className="text-sm text-pill-red-bg hover:underline px-3 py-2.5"
-            >
-              Remove key
-            </button>
-          )}
-        </div>
       </motion.div>
 
       {status && <p className="text-sm text-accent mt-4">{status}</p>}
