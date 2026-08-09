@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { sendMonthlyWelcomeEmail, sendLifetimeWelcomeEmail, sendChurnEmail } from "@/lib/email";
+import { sendBasicWelcomeEmail, sendMonthlyWelcomeEmail, sendLifetimeWelcomeEmail, sendChurnEmail } from "@/lib/email";
 
 const VALID_ROLES = ["user", "admin", "creator"];
-const VALID_PLANS = ["trial", "monthly", "lifetime", "expired"];
-const PAID_PLANS = ["monthly", "lifetime"];
+const VALID_PLANS = ["trial", "basic", "monthly", "lifetime", "expired"];
+const PAID_PLANS = ["basic", "monthly", "lifetime"];
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -24,7 +24,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const oldPlan = existing.plan;
   const newPlan = updated.plan;
   if (oldPlan !== newPlan) {
-    if (newPlan === "monthly") sendMonthlyWelcomeEmail(updated.email, updated.displayName).catch(() => {});
+    if (newPlan === "basic") sendBasicWelcomeEmail(updated.email, updated.displayName).catch(() => {});
+    else if (newPlan === "monthly") sendMonthlyWelcomeEmail(updated.email, updated.displayName).catch(() => {});
     else if (newPlan === "lifetime") sendLifetimeWelcomeEmail(updated.email, updated.displayName).catch(() => {});
     else if (PAID_PLANS.includes(oldPlan) && !PAID_PLANS.includes(newPlan)) {
       sendChurnEmail(updated.email, updated.displayName).catch(() => {});

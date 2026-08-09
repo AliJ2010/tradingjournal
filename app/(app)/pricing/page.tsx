@@ -37,11 +37,12 @@ export default function PricingPage() {
     setChecking(false);
   }
 
+  const basicPrice = applyDiscount(15, discount);
   const monthlyPrice = applyDiscount(30, discount);
   const lifetimePrice = applyDiscount(150, discount);
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-8 max-w-5xl mx-auto">
       <h1 className="text-2xl font-semibold mb-1">Pricing</h1>
       <p className="text-sm text-base-muted mb-8">Simple pricing, no surprises. Billing isn't live yet — this is a preview of what's coming.</p>
 
@@ -62,7 +63,24 @@ export default function PricingPage() {
       </div>
       {message && <p className={`text-sm mb-6 ${discount?.valid ? "text-pill-green-bg" : "text-pill-red-bg"}`}>{message}</p>}
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">
+          <div className="text-sm text-base-muted mb-1">Basic</div>
+          <div className="flex items-baseline gap-2 mb-4">
+            {discount?.valid && <span className="text-base-muted line-through text-lg">$15</span>}
+            <span className="text-4xl font-semibold">${basicPrice.toFixed(0)}</span>
+            <span className="text-base-muted text-sm">/ month</span>
+          </div>
+          <ul className="text-sm text-base-muted space-y-2 mb-6">
+            <li>Journal, calendar, dashboard</li>
+            <li>50 AI Coach messages / month</li>
+            <li>CSV export</li>
+          </ul>
+          <button disabled className="w-full bg-base-panel2 border border-base-border rounded-lg py-2.5 text-sm text-base-muted cursor-not-allowed">
+            Coming soon
+          </button>
+        </motion.div>
+
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">
           <div className="text-sm text-base-muted mb-1">Monthly</div>
           <div className="flex items-baseline gap-2 mb-4">
@@ -71,9 +89,9 @@ export default function PricingPage() {
             <span className="text-base-muted text-sm">/ month</span>
           </div>
           <ul className="text-sm text-base-muted space-y-2 mb-6">
-            <li>Everything in Vantage — journal, calendar, dashboard, AI Coach</li>
-            <li>Friends & shared progress tracking</li>
-            <li>Cancel anytime</li>
+            <li>Everything in Basic</li>
+            <li>200 AI Coach messages / month</li>
+            <li>Friends & shared progress, CSV + PDF export</li>
           </ul>
           <button disabled className="w-full bg-base-panel2 border border-base-border rounded-lg py-2.5 text-sm text-base-muted cursor-not-allowed">
             Coming soon
@@ -94,7 +112,7 @@ export default function PricingPage() {
           </div>
           <ul className="text-sm text-base-muted space-y-2 mb-6">
             <li>Everything in Monthly, forever</li>
-            <li>All future features included</li>
+            <li>Unlimited AI Coach messages</li>
             <li>Pay once, never again</li>
           </ul>
           <button disabled className="w-full bg-brand-gradient/40 border border-accent/40 rounded-lg py-2.5 text-sm text-white/70 cursor-not-allowed">

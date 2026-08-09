@@ -42,7 +42,7 @@ export default function ExportButtons() {
       const trades = await getTrades();
       const headers = [
         "Date", "Result", "Direction", "HTF Bias", "Entry Time", "Exit Time",
-        "Risk %", "RR", "PnL", "Setup Tags", "Emotion Tags", "Rules Followed", "Notes",
+        "Risk ($)", "RR", "PnL", "Setup Tags", "Emotion Tags", "Rules Followed", "Notes",
       ];
       const rows = trades.map((t: any) => [
         new Date(t.date).toLocaleDateString(),

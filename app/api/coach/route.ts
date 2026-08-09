@@ -4,6 +4,17 @@ import { getCurrentUser } from "@/lib/auth";
 import { getAnthropicClient, isCoachConfigured, buildCoachSystemPrompt, COACH_MODEL } from "@/lib/anthropic";
 import { parseTags } from "@/lib/json";
 import { readUploadedImageAsBase64 } from "@/lib/imageFile";
+import { getCoachMessageLimit } from "@/lib/plan";
+
+function startOfMonth(d = new Date()) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+async function countMessagesThisMonth(userId: string) {
+  return prisma.coachMessage.count({
+    where: { userId, role: "user", createdAt: { gte: startOfMonth() } },
+  });
+}
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -14,7 +25,15 @@ export async function GET() {
     orderBy: { createdAt: "asc" },
   });
 
-  return NextResponse.json({ messages, configured: isCoachConfigured(user.anthropicApiKey) });
+  const usedThisMonth = await countMessagesThisMonth(user.id);
+  const limit = getCoachMessageLimit(user.plan);
+
+  return NextResponse.json({
+    messages,
+    configured: isCoachConfigured(user.anthropicApiKey),
+    usedThisMonth,
+    limit: Number.isFinite(limit) ? limit : null,
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -30,6 +49,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "No Anthropic API key configured. Add one on the Settings page to enable the AI Coach." },
       { status: 400 }
+    );
+  }
+
+  const limit = getCoachMessageLimit(user.plan);
+  const usedThisMonth = await countMessagesThisMonth(user.id);
+  if (usedThisMonth >= limit) {
+    return NextResponse.json(
+      { error: `You've used all ${limit} AI Coach messages included in your plan this month. Upgrade for more.` },
+      { status: 429 }
     );
   }
 
@@ -105,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     const saved = await prisma.coachMessage.create({ data: { userId: user.id, role: "assistant", content: replyText } });
 
-    return NextResponse.json({ reply: saved });
+    return NextResponse.json({ reply: saved, usedThisMonth: usedThisMonth + 1, limit: Number.isFinite(limit) ? limit : null });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Anthropic API request failed." }, { status: 502 });
   }

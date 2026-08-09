@@ -14,6 +14,7 @@ export default function CoachPage() {
   const [error, setError] = useState("");
   const [attachedImage, setAttachedImage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [usage, setUsage] = useState<{ used: number; limit: number | null } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -23,6 +24,7 @@ export default function CoachPage() {
       .then((data) => {
         setMessages(data.messages || []);
         setConfigured(data.configured);
+        setUsage({ used: data.usedThisMonth ?? 0, limit: data.limit });
       });
   }, []);
 
@@ -69,6 +71,7 @@ export default function CoachPage() {
         setError(data.error || "Something went wrong.");
       } else {
         setMessages((m) => [...m, data.reply]);
+        setUsage({ used: data.usedThisMonth, limit: data.limit });
       }
     } catch {
       setError("Could not reach the coach.");
@@ -78,9 +81,16 @@ export default function CoachPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="p-6 border-b border-base-border">
-        <h1 className="text-xl font-semibold">🧠 AI Coach</h1>
-        <p className="text-sm text-base-muted mt-1">Personalized feedback based on your logged trades.</p>
+      <div className="p-6 border-b border-base-border flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">🧠 AI Coach</h1>
+          <p className="text-sm text-base-muted mt-1">Personalized feedback based on your logged trades.</p>
+        </div>
+        {usage && (
+          <span className="text-xs text-base-muted shrink-0">
+            {usage.limit === null ? "Unlimited messages" : `${usage.used}/${usage.limit} messages this month`}
+          </span>
+        )}
       </div>
 
       {!configured && (

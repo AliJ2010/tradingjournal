@@ -51,7 +51,7 @@ export const TRADE_FIELDS: FieldDef[] = [
   { key: "entryTime", label: "Entry Time", icon: "clock", type: "time", hideable: true },
   { key: "exitTime", label: "Exit Time", icon: "clock", type: "time", hideable: true },
   { key: "newsTags", label: "News today?", icon: "list", type: "readonly-tags", hideable: true },
-  { key: "riskPercent", label: "Risk %", icon: "list", type: "number", hideable: true },
+  { key: "riskPercent", label: "Risk ($)", icon: "list", type: "number", hideable: true },
   { key: "drawDirectionTags", label: "Draw Direction", icon: "list", type: "tags", hideable: true },
   { key: "setupTags", label: "Setup/Model", icon: "list", type: "tags", hideable: true },
   { key: "emotionTags", label: "Emotional State", icon: "smile", type: "tags", hideable: true },

@@ -44,6 +44,14 @@ export function sendTrialEndingEmail(to: string, displayName: string, daysLeft: 
   );
 }
 
+export function sendBasicWelcomeEmail(to: string, displayName: string) {
+  return sendEmail(
+    to,
+    "You're on Vantage Basic",
+    `<p>Hi ${displayName},</p><p>Thanks for subscribing to Vantage Basic. You've got your journal, dashboard, calendar, and a limited AI Coach allowance each month.</p>${footer}`
+  );
+}
+
 export function sendMonthlyWelcomeEmail(to: string, displayName: string) {
   return sendEmail(
     to,
@@ -57,6 +65,14 @@ export function sendLifetimeWelcomeEmail(to: string, displayName: string) {
     to,
     "Welcome to Vantage Lifetime 🚀",
     `<p>Hi ${displayName},</p><p>You're in for good — thanks for grabbing Lifetime access. Every future feature is included, no more bills.</p>${footer}`
+  );
+}
+
+export function sendPasswordResetEmail(to: string, displayName: string, resetUrl: string) {
+  return sendEmail(
+    to,
+    "Reset your Vantage password",
+    `<p>Hi ${displayName},</p><p>Someone requested a password reset for your account. Click below to set a new password — this link expires in 1 hour.</p><p><a href="${resetUrl}" style="color:#7c5cff">Reset your password</a></p><p>If you didn't request this, you can ignore this email.</p>${footer}`
   );
 }
 

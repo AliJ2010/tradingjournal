@@ -9,7 +9,7 @@ export type PlanStatus = {
 };
 
 export function getPlanStatus(user: { plan: string; trialEndsAt: Date | string | null }): PlanStatus {
-  if (user.plan === "monthly" || user.plan === "lifetime") {
+  if (user.plan === "basic" || user.plan === "monthly" || user.plan === "lifetime") {
     return { plan: user.plan, isTrialActive: false, isExpired: false, daysLeft: null };
   }
 
@@ -28,6 +28,18 @@ export function getPlanStatus(user: { plan: string; trialEndsAt: Date | string |
 }
 
 export const TRIAL_DAYS = 5;
+
+const COACH_MESSAGE_LIMITS: Record<string, number> = {
+  trial: 50,
+  basic: 50,
+  monthly: 200,
+  lifetime: Infinity,
+  expired: 10,
+};
+
+export function getCoachMessageLimit(plan: string): number {
+  return COACH_MESSAGE_LIMITS[plan] ?? 50;
+}
 
 export async function maybeSendTrialReminder(user: {
   id: string;

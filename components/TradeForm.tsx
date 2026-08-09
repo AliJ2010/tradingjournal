@@ -6,13 +6,7 @@ import PropertyRow from "./PropertyRow";
 import PillBadge, { colorForTag } from "./PillBadge";
 import NewsBanner from "./NewsBanner";
 import ImageDropField from "./ImageDropField";
-import {
-  TRADE_FIELDS,
-  SETUP_TAG_SUGGESTIONS,
-  EMOTION_TAG_SUGGESTIONS,
-  DRAW_DIRECTION_SUGGESTIONS,
-  type FieldDef,
-} from "@/lib/tradeFields";
+import { TRADE_FIELDS, EMOTION_TAG_SUGGESTIONS, type FieldDef } from "@/lib/tradeFields";
 
 export type TradeDraft = {
   id?: string;
@@ -88,7 +82,7 @@ function TagInput({
       ))}
       {!disabled && (
         <input
-          list={`suggestions-${suggestions.join("-").slice(0, 20)}`}
+          list={suggestions.length > 0 ? `suggestions-${suggestions.join("-").slice(0, 20)}` : undefined}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -102,11 +96,13 @@ function TagInput({
           className="bg-transparent text-sm text-base-muted placeholder:text-base-muted/60 w-24 px-1 py-1"
         />
       )}
-      <datalist id={`suggestions-${suggestions.join("-").slice(0, 20)}`}>
-        {suggestions.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
+      {suggestions.length > 0 && (
+        <datalist id={`suggestions-${suggestions.join("-").slice(0, 20)}`}>
+          {suggestions.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+      )}
     </div>
   );
 }
@@ -254,9 +250,7 @@ export default function TradeForm({
                   <TagInput
                     values={(draft as any)[field.key]}
                     onChange={(v) => set(field.key as any, v as any)}
-                    suggestions={
-                      field.key === "setupTags" ? SETUP_TAG_SUGGESTIONS : field.key === "emotionTags" ? EMOTION_TAG_SUGGESTIONS : DRAW_DIRECTION_SUGGESTIONS
-                    }
+                    suggestions={field.key === "emotionTags" ? EMOTION_TAG_SUGGESTIONS : []}
                     disabled={readOnly}
                   />
                 )}
@@ -286,7 +280,7 @@ export default function TradeForm({
                   (readOnly ? (
                     <PillBadge
                       color={field.key === "pnl" ? ((draft.pnl >= 0 ? "green" : "red") as any) : "blue"}
-                      label={field.key === "riskPercent" ? `${draft.riskPercent}%` : `$${draft.pnl.toFixed(2)}`}
+                      label={field.key === "riskPercent" ? `$${draft.riskPercent.toFixed(2)}` : `$${draft.pnl.toFixed(2)}`}
                     />
                   ) : (
                     <input

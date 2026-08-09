@@ -170,6 +170,7 @@ export default function AdminDashboard() {
                         className="bg-base-panel2 border border-base-border rounded-md px-2 py-1 text-xs"
                       >
                         <option value="trial">Trial ({status.isExpired ? "expired" : `${status.daysLeft ?? "?"}d left`})</option>
+                        <option value="basic">Basic</option>
                         <option value="monthly">Monthly</option>
                         <option value="lifetime">Lifetime</option>
                         <option value="expired">Expired</option>

@@ -2,11 +2,27 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import AmbientBackground from "@/components/AmbientBackground";
+import LandingMockup from "@/components/LandingMockup";
+import LandingChatWidget from "@/components/LandingChatWidget";
 
-const FEATURES = [
-  { icon: "🧠", label: "Real AI coaching", detail: "powered by Claude" },
-  { icon: "🗓️", label: "Win/loss calendar", detail: "see your best days" },
-  { icon: "📄", label: "PDF & CSV export", detail: "shareable in one click" },
+const MARKETS = ["NQ", "ES", "YM", "CL", "GC", "Forex", "Crypto", "Stocks"];
+
+const WHY = [
+  {
+    icon: "🧠",
+    title: "An AI Coach that knows your history",
+    body: "Not generic advice — feedback grounded in your actual setups, emotional-state tags, and rule-following rate.",
+  },
+  {
+    icon: "🗓️",
+    title: "See your patterns, not just your PnL",
+    body: "A win/loss calendar and logging streak make it obvious which days — and which setups — actually work for you.",
+  },
+  {
+    icon: "🔒",
+    title: "Share progress, keep your privacy",
+    body: "Add one friend to compare journals — and mark any field private so only you ever see it.",
+  },
 ];
 
 export default async function Home() {
@@ -16,14 +32,6 @@ export default async function Home() {
   return (
     <div className="relative min-h-screen bg-base-bg text-base-text overflow-hidden">
       <AmbientBackground />
-      <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      />
 
       <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
@@ -33,6 +41,9 @@ export default async function Home() {
           <span className="font-semibold tracking-tight">Vantage</span>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/pricing" className="text-sm text-base-muted hover:text-base-text transition-colors hidden sm:inline">
+            Pricing
+          </Link>
           <Link href="/support" className="text-sm text-base-muted hover:text-base-text transition-colors hidden sm:inline">
             Support
           </Link>
@@ -48,10 +59,7 @@ export default async function Home() {
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-4xl mx-auto px-8 pt-20 pb-24 text-center">
-        <span className="inline-block text-xs font-medium px-3 py-1.5 rounded-full border border-accent/30 bg-brand-gradient-soft mb-6">
-          ✨ AI-powered · built for discretionary traders
-        </span>
+      <main className="relative z-10 max-w-5xl mx-auto px-8 pt-16 pb-8 text-center">
         <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight leading-tight mb-5">
           Trade with clarity.
           <br />
@@ -73,19 +81,50 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {FEATURES.map((f) => (
-            <div
-              key={f.label}
-              className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl glass-panel border border-base-border"
-            >
-              <span>{f.icon}</span>
-              <span className="font-medium">{f.label}</span>
-              <span className="text-base-muted">— {f.detail}</span>
+        <div className="max-w-3xl mx-auto mb-16">
+          <LandingMockup />
+        </div>
+
+        <div className="mb-24">
+          <p className="text-xs text-base-muted uppercase tracking-wide mb-4">Works with any market</p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {MARKETS.map((m) => (
+              <span key={m} className="text-sm px-3 py-1.5 rounded-lg glass-panel border border-base-border text-base-muted">
+                {m}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-5 text-left mb-16">
+          {WHY.map((w) => (
+            <div key={w.title} className="glass-panel border border-base-border rounded-2xl p-6">
+              <div className="text-2xl mb-3">{w.icon}</div>
+              <h3 className="font-semibold mb-2">{w.title}</h3>
+              <p className="text-sm text-base-muted leading-relaxed">{w.body}</p>
             </div>
           ))}
         </div>
+
+        <div className="glass-panel border border-accent/30 rounded-2xl p-10 shadow-glow mb-8">
+          <h2 className="text-2xl font-semibold mb-2">Ready to see your edge?</h2>
+          <p className="text-base-muted mb-6">5 days free. No card required.</p>
+          <Link
+            href="/register"
+            className="inline-block px-6 py-3 rounded-lg bg-brand-gradient text-white font-medium shadow-glow hover:brightness-110 transition-all"
+          >
+            Start free trial
+          </Link>
+        </div>
       </main>
+
+      <footer className="relative z-10 text-center text-xs text-base-muted pb-8">
+        <Link href="/support" className="hover:text-base-text transition-colors">
+          Support
+        </Link>
+      </footer>
+
+      <LandingChatWidget />
     </div>
   );
 }
