@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
 import AmbientBackground from "@/components/AmbientBackground";
 import TrialBanner from "@/components/TrialBanner";
+import DiscordReminder from "@/components/DiscordReminder";
 import { maybeSendTrialReminder } from "@/lib/plan";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <TrialBanner user={user} />
         {children}
       </main>
+      <DiscordReminder />
     </div>
   );
 }

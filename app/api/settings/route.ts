@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { getPlanStatus } from "@/lib/plan";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -12,6 +13,7 @@ export async function GET() {
     instrument: user.instrument,
     hasApiKey: Boolean(user.anthropicApiKey),
     apiKeyPreview: user.anthropicApiKey ? `••••${user.anthropicApiKey.slice(-4)}` : null,
+    billing: getPlanStatus(user),
   });
 }
 

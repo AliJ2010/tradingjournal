@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { serializeTags } from "@/lib/json";
 import { getRedFolderTagsForDate } from "@/lib/economicCalendar";
 import { toDayKey } from "@/lib/streak";
+import { signPnl } from "@/lib/pnl";
 
 async function loadOwnedTrade(id: string, userId: string) {
   const trade = await prisma.trade.findUnique({ where: { id } });
@@ -31,12 +32,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const date = new Date(body.date || existing.date);
   const dayKey = toDayKey(date);
   const newsTags = await getRedFolderTagsForDate(dayKey).catch(() => [] as string[]);
+  const result = body.result;
 
   const trade = await prisma.trade.update({
     where: { id: params.id },
     data: {
       date,
-      result: body.result,
+      result,
       direction: body.direction,
       htfBias: body.htfBias,
       entryTime: body.entryTime,
@@ -44,7 +46,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       riskPercent: Number(body.riskPercent) || 0,
       rulesFollowed: Boolean(body.rulesFollowed),
       rr: body.rr,
-      pnl: Number(body.pnl) || 0,
+      pnl: signPnl(Number(body.pnl) || 0, result),
       drawDirectionTags: serializeTags(body.drawDirectionTags || []),
       setupTags: serializeTags(body.setupTags || []),
       emotionTags: serializeTags(body.emotionTags || []),

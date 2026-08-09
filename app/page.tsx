@@ -110,20 +110,33 @@ export default async function Home() {
         <div className="glass-panel border border-accent/30 rounded-2xl p-6 sm:p-10 shadow-glow mb-8">
           <h2 className="text-2xl font-semibold mb-2">Ready to see your edge?</h2>
           <p className="text-base-muted mb-6">5 days free. No card required.</p>
-          <Link
-            href="/register"
-            className="inline-block px-6 py-3 rounded-lg bg-brand-gradient text-white font-medium shadow-glow hover:brightness-110 transition-all"
-          >
-            Start free trial
-          </Link>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link
+              href="/register"
+              className="inline-block px-6 py-3 rounded-lg bg-brand-gradient text-white font-medium shadow-glow hover:brightness-110 transition-all"
+            >
+              Start free trial
+            </Link>
+            <a
+              href="https://discord.gg/wjhWDjJG6z"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-6 py-3 rounded-lg border border-base-border bg-base-panel2 text-base-text font-medium hover:border-accent/60 transition-all"
+            >
+              Join our Discord
+            </a>
+          </div>
         </div>
       </main>
 
       <footer className="relative z-10 text-center text-xs text-base-muted pb-4 px-4 space-y-2">
-        <div>
+        <div className="flex items-center justify-center gap-4">
           <Link href="/support" className="hover:text-base-text transition-colors">
             Support
           </Link>
+          <a href="https://discord.gg/wjhWDjJG6z" target="_blank" rel="noopener noreferrer" className="hover:text-base-text transition-colors">
+            Discord
+          </a>
         </div>
         <InstallPwaHint />
       </footer>

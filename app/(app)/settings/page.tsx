@@ -5,10 +5,25 @@ import { motion } from "framer-motion";
 import { COUNTRY_TIMEZONES, utcOffsetLabel } from "@/lib/countryTimezones";
 import InstallPwaHint from "@/components/InstallPwaHint";
 
+type Billing = {
+  plan: string;
+  isTrialActive: boolean;
+  isExpired: boolean;
+  daysLeft: number | null;
+};
+
 type Settings = {
   displayName: string;
   timezone: string;
   instrument: string;
+  billing: Billing;
+};
+
+const PLAN_LABELS: Record<string, string> = {
+  trial: "Free trial",
+  monthly: "Monthly plan",
+  lifetime: "Lifetime plan",
+  expired: "No active plan",
 };
 
 export default function SettingsPage() {
@@ -18,6 +33,9 @@ export default function SettingsPage() {
   const [instrument, setInstrument] = useState("");
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
+  const [billingStatus, setBillingStatus] = useState("");
+  const [billingBusy, setBillingBusy] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -29,6 +47,36 @@ export default function SettingsPage() {
         setInstrument(data.instrument);
       });
   }, []);
+
+  async function cancelSubscription() {
+    if (!confirm("End your subscription? You'll lose paid access immediately.")) return;
+    setBillingBusy(true);
+    setBillingStatus("");
+    const res = await fetch("/api/account/cancel-subscription", { method: "POST" });
+    const data = await res.json();
+    setBillingBusy(false);
+    if (res.ok) {
+      setSettings((s) => (s ? { ...s, billing: data.billing } : s));
+      setBillingStatus("Subscription ended.");
+    } else {
+      setBillingStatus(data.error || "Something went wrong.");
+    }
+  }
+
+  async function deleteAccount() {
+    if (!confirm("Delete your account? This permanently removes your journal, trades, and settings. This can't be undone.")) return;
+    if (!confirm("Are you absolutely sure? Type-checking done — this is your final confirmation.")) return;
+    setBillingBusy(true);
+    setBillingStatus("");
+    const res = await fetch("/api/account", { method: "DELETE" });
+    if (res.ok) {
+      window.location.href = "/login";
+    } else {
+      setBillingBusy(false);
+      const data = await res.json().catch(() => ({}));
+      setBillingStatus(data.error || "Something went wrong.");
+    }
+  }
 
   async function save(extra: Record<string, any> = {}) {
     setSaving(true);
@@ -107,6 +155,53 @@ export default function SettingsPage() {
       </motion.div>
 
       {status && <p className="text-sm text-accent mt-4">{status}</p>}
+
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl mt-6 overflow-hidden">
+        <button
+          onClick={() => setBillingOpen((o) => !o)}
+          className="w-full flex items-center justify-between px-6 py-4 text-left"
+        >
+          <div>
+            <div className="text-sm font-medium">Billing &amp; account</div>
+            <div className="text-xs text-base-muted mt-0.5">
+              {PLAN_LABELS[settings.billing.plan] || settings.billing.plan}
+              {settings.billing.isTrialActive && settings.billing.daysLeft !== null && ` — ${settings.billing.daysLeft} day(s) left`}
+              {settings.billing.isExpired && " — expired"}
+            </div>
+          </div>
+          <span className="text-base-muted">{billingOpen ? "▲" : "▼"}</span>
+        </button>
+
+        {billingOpen && (
+          <div className="px-6 pb-6 space-y-4 border-t border-base-border pt-4">
+            <div className="text-sm text-base-muted">
+              Billing is not live yet — plans are managed manually for now.{" "}
+              <a href="/pricing" className="text-accent hover:underline">
+                See pricing
+              </a>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={cancelSubscription}
+                disabled={billingBusy}
+                className="text-sm bg-base-panel2 border border-base-border rounded-lg px-4 py-2 hover:border-pill-orange-bg/60 hover:text-pill-orange-bg transition-colors disabled:opacity-60"
+              >
+                End subscription
+              </button>
+              <button
+                onClick={deleteAccount}
+                disabled={billingBusy}
+                className="text-sm bg-base-panel2 border border-base-border rounded-lg px-4 py-2 hover:border-pill-red-bg/60 hover:text-pill-red-bg transition-colors disabled:opacity-60"
+              >
+                Delete account
+              </button>
+            </div>
+
+            {billingStatus && <p className="text-xs text-base-muted">{billingStatus}</p>}
+          </div>
+        )}
+      </motion.div>
 
       <div className="mt-8 text-center">
         <InstallPwaHint />

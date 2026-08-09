@@ -6,7 +6,7 @@ import { addMonths, subMonths, format } from "date-fns";
 import CalendarGrid, { type DayStat } from "@/components/CalendarGrid";
 import { computeStreaks, toDayKey } from "@/lib/streak";
 
-type Trade = { id: string; date: string; result: string; pnl: number };
+type Trade = { id: string; date: string; result: string; pnl: number; rr: string };
 
 export default function CalendarPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -24,11 +24,12 @@ export default function CalendarPage() {
     const map: Record<string, DayStat> = {};
     for (const t of trades) {
       const key = toDayKey(t.date);
-      if (!map[key]) map[key] = { count: 0, pnl: 0, wins: 0, losses: 0 };
+      if (!map[key]) map[key] = { count: 0, pnl: 0, wins: 0, losses: 0, rrs: [] };
       map[key].count += 1;
       map[key].pnl += t.pnl;
       if (t.result === "Win") map[key].wins += 1;
       if (t.result === "Loss") map[key].losses += 1;
+      if (t.rr && t.rr.trim()) map[key].rrs.push(t.rr.trim());
     }
     return map;
   }, [trades]);

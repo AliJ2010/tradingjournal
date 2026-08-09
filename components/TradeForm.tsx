@@ -279,7 +279,11 @@ export default function TradeForm({
                 {field.type === "number" &&
                   (readOnly ? (
                     <PillBadge
-                      color={field.key === "pnl" ? ((draft.pnl >= 0 ? "green" : "red") as any) : "blue"}
+                      color={
+                        field.key === "pnl"
+                          ? ((draft.result === "Win" ? "green" : draft.result === "Loss" ? "red" : "slate") as any)
+                          : "blue"
+                      }
                       label={field.key === "riskPercent" ? `$${draft.riskPercent.toFixed(2)}` : `$${draft.pnl.toFixed(2)}`}
                     />
                   ) : (

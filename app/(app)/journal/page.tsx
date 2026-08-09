@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TradeForm, { emptyDraft, type TradeDraft } from "@/components/TradeForm";
 import PillBadge from "@/components/PillBadge";
 import ExportButtons from "@/components/ExportButtons";
+import { toDayKey } from "@/lib/streak";
 
 type TradeRow = {
   id: string;
@@ -53,6 +54,7 @@ export default function JournalPage() {
   const [loading, setLoading] = useState(true);
   const [refreshStatus, setRefreshStatus] = useState("");
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   const loadTrades = useCallback(async () => {
     const res = await fetch("/api/trades");
@@ -74,15 +76,32 @@ export default function JournalPage() {
   }, [loadTrades]);
 
   useEffect(() => {
-    if (!selectedId) return;
-    if (selectedId === "new") {
-      setDraft(emptyDraft());
-      return;
-    }
+    if (!selectedId || selectedId === "new") return;
     fetch(`/api/trades/${selectedId}`)
       .then((r) => r.json())
       .then((t) => setDraft(tradeToDraft(t)));
   }, [selectedId]);
+
+  function openNewEntry(date?: string) {
+    setDraft(emptyDraft(date));
+    setSelectedId("new");
+    setMobileDetailOpen(true);
+    setExpandedDay(null);
+  }
+
+  const groupedDays = useMemo(() => {
+    const order: string[] = [];
+    const map: Record<string, TradeRow[]> = {};
+    for (const t of trades) {
+      const key = toDayKey(t.date);
+      if (!map[key]) {
+        map[key] = [];
+        order.push(key);
+      }
+      map[key].push(t);
+    }
+    return order.map((key) => ({ key, trades: map[key] }));
+  }, [trades]);
 
   async function handleSave(d: TradeDraft) {
     const payload = { ...d };
@@ -136,10 +155,7 @@ export default function JournalPage() {
       <div className={`${mobileDetailOpen ? "hidden" : "flex"} md:flex w-full md:w-72 shrink-0 border-r border-base-border flex-col md:h-screen`}>
         <div className="p-4 border-b border-base-border flex items-center justify-between gap-2">
           <button
-            onClick={() => {
-              setSelectedId("new");
-              setMobileDetailOpen(true);
-            }}
+            onClick={() => openNewEntry()}
             className="flex-1 bg-brand-gradient text-white text-sm font-medium rounded-lg py-2 shadow-glow hover:brightness-110 transition-all"
           >
             + New entry
@@ -158,29 +174,103 @@ export default function JournalPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-1">
-          {trades.length === 0 && <p className="px-3 text-sm text-base-muted">No entries yet. Log your first trade.</p>}
-          {trades.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => {
-                setSelectedId(t.id);
-                setMobileDetailOpen(true);
-              }}
-              className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
-                selectedId === t.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm">
-                  {new Date(t.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
-                </span>
-                <PillBadge small label={t.result} color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : "slate"} />
+          {groupedDays.length === 0 && <p className="px-3 text-sm text-base-muted">No entries yet. Log your first trade.</p>}
+          {groupedDays.map(({ key, trades: dayTrades }) => {
+            const single = dayTrades.length === 1 ? dayTrades[0] : null;
+            const totalPnl = dayTrades.reduce((s, t) => s + t.pnl, 0);
+            const isExpanded = expandedDay === key;
+            const pnlColor = single
+              ? single.result === "Win"
+                ? "text-pill-green-bg"
+                : single.result === "Loss"
+                ? "text-pill-red-bg"
+                : "text-base-muted"
+              : totalPnl >= 0
+              ? "text-pill-green-bg"
+              : "text-pill-red-bg";
+
+            return (
+              <div key={key}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    if (single) {
+                      setSelectedId(single.id);
+                      setMobileDetailOpen(true);
+                    } else {
+                      setExpandedDay(isExpanded ? null : key);
+                    }
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && e.currentTarget.click()}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${
+                    single && selectedId === single.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">
+                      {new Date(dayTrades[0].date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                    </span>
+                    {single ? (
+                      <PillBadge small label={single.result} color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : "slate"} />
+                    ) : (
+                      <PillBadge small label={`${dayTrades.length} trades`} color="blue" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`text-xs ${pnlColor}`}>
+                      {totalPnl < 0 ? "-" : ""}${Math.abs(totalPnl).toFixed(2)}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedDay(isExpanded ? null : key);
+                      }}
+                      className="text-[11px] text-accent hover:underline"
+                    >
+                      Took another trade? +
+                    </button>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden pl-3"
+                    >
+                      {dayTrades.length > 1 &&
+                        dayTrades.map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => {
+                              setSelectedId(t.id);
+                              setMobileDetailOpen(true);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors ${
+                              selectedId === t.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
+                            }`}
+                          >
+                            <PillBadge small label={t.result} color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : "slate"} />
+                            <span className={t.result === "Win" ? "text-pill-green-bg" : t.result === "Loss" ? "text-pill-red-bg" : "text-base-muted"}>
+                              {t.pnl < 0 ? "-" : ""}${Math.abs(t.pnl).toFixed(2)}
+                            </span>
+                          </button>
+                        ))}
+                      <button
+                        onClick={() => openNewEntry(key)}
+                        className="w-full text-left px-3 py-2 rounded-lg text-xs text-accent hover:bg-base-panel2/60"
+                      >
+                        + Add another trade for this day
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <div className={`text-xs mt-0.5 ${t.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-                {t.pnl >= 0 ? "+" : ""}${t.pnl.toFixed(2)}
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
 

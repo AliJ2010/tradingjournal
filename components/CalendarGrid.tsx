@@ -12,7 +12,7 @@ import {
   format,
 } from "date-fns";
 
-export type DayStat = { count: number; pnl: number; wins: number; losses: number };
+export type DayStat = { count: number; pnl: number; wins: number; losses: number; rrs: string[] };
 
 export default function CalendarGrid({
   month,
@@ -45,8 +45,8 @@ export default function CalendarGrid({
         let border = "border-base-border";
         if (stat) {
           if (stat.pnl > 0) {
-            bg = "bg-pill-green-bg/25";
-            border = "border-pill-green-bg/50";
+            bg = "bg-pill-green-bg/40";
+            border = "border-pill-green-bg/70";
           } else if (stat.pnl < 0) {
             bg = "bg-pill-red-bg/25";
             border = "border-pill-red-bg/50";
@@ -65,13 +65,15 @@ export default function CalendarGrid({
               inMonth ? "" : "opacity-30"
             } ${isToday ? "ring-2 ring-accent" : ""} flex flex-col items-center justify-center gap-0.5 p-1`}
           >
-            <span className="text-xs text-base-muted">{format(day, "d")}</span>
             {stat && (
-              <span className={`text-[11px] font-medium ${stat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-                {stat.pnl >= 0 ? "+" : ""}
-                {stat.pnl.toFixed(0)}
+              <span className={`text-[11px] font-semibold leading-tight ${stat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
+                {stat.pnl < 0 ? "-" : ""}${Math.abs(stat.pnl).toFixed(0)}
               </span>
             )}
+            {stat && stat.rrs.length > 0 && (
+              <span className="text-[9px] text-base-muted leading-tight">{stat.rrs.join("/")}</span>
+            )}
+            <span className="text-xs text-base-muted">{format(day, "d")}</span>
           </motion.button>
         );
       })}
