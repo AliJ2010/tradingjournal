@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  username        String   @unique
+  email           String   @unique
+  passwordHash    String
+  displayName     String
+  timezone        String   @default("UTC")
+  instrument      String   @default("NQ")
+  anthropicApiKey String?
+  role            String   @default("user") // "user" | "admin" | "creator"
+  plan            String   @default("trial") // "trial" | "monthly" | "lifetime" | "expired"
+  trialEndsAt     DateTime?
+  referredByCode  String?
+  createdAt       DateTime @default(now())
+
+  trades           Trade[]
+  coachMessages    CoachMessage[]
+  sentRequests     FriendLink[]   @relation("Requester")
+  receivedRequests FriendLink[]   @relation("Receiver")
+  creatorCode      CreatorCode?
+  referral         Referral?
+}
+
+model Trade {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date        DateTime
+  result      String
+  direction   String
+  htfBias     String
+  entryTime   String   @default("")
+  exitTime    String   @default("")
+  riskPercent Float    @default(0)
+  rulesFollowed Boolean @default(true)
+  rr          String   @default("")
+  pnl         Float    @default(0)
+
+  drawDirectionTags String @default("[]")
+  setupTags         String @default("[]")
+  emotionTags       String @default("[]")
+  newsTags          String @default("[]")
+
+  whatOthersDid   String @default("")
+  notes           String @default("")
+  whatWouldYouDo  String @default("")
+  chartImageUrl   String @default("")
+
+  hiddenFields String @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model EconomicEvent {
+  id        String   @id @default(cuid())
+  date      String
+  time      String   @default("")
+  currency  String
+  impact    String
+  title     String
+  createdAt DateTime @default(now())
+
+  @@unique([date, time, currency, title])
+}
+
+model FriendLink {
+  id          String   @id @default(cuid())
+  requesterId String
+  receiverId  String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, receiverId])
+}
+
+model CoachMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model DiscountCode {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  percentOff      Int?
+  amountOffCents  Int?
+  active          Boolean  @default(true)
+  maxRedemptions  Int?
+  timesRedeemed   Int      @default(0)
+  createdAt       DateTime @default(now())
+}
+
+model CreatorCode {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  creatorUserId     String   @unique
+  creator           User     @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  commissionPercent Int      @default(10)
+  createdAt         DateTime @default(now())
+
+  referrals Referral[]
+}
+
+model Referral {
+  id             String      @id @default(cuid())
+  creatorCodeId  String
+  creatorCode    CreatorCode @relation(fields: [creatorCodeId], references: [id], onDelete: Cascade)
+  referredUserId String      @unique
+  referredUser   User        @relation(fields: [referredUserId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+}

@@ -1,0 +1,149 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
+import { StatCard } from "@/components/StatCards";
+
+type Trade = {
+  id: string;
+  date: string;
+  result: string;
+  pnl: number;
+  rulesFollowed: boolean;
+  setupTags: string;
+};
+
+function safeParse(v: string): string[] {
+  try {
+    return JSON.parse(v || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export default function DashboardPage() {
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/trades")
+      .then((r) => r.json())
+      .then(setTrades)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const stats = useMemo(() => {
+    const sorted = [...trades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const wins = trades.filter((t) => t.result === "Win").length;
+    const losses = trades.filter((t) => t.result === "Loss").length;
+    const total = trades.length;
+    const winRate = total > 0 ? (wins / total) * 100 : 0;
+    const totalPnl = trades.reduce((sum, t) => sum + t.pnl, 0);
+    const avgPnl = total > 0 ? totalPnl / total : 0;
+    const rulesFollowedRate = total > 0 ? (trades.filter((t) => t.rulesFollowed).length / total) * 100 : 0;
+
+    let cumulative = 0;
+    const equityCurve = sorted.map((t, i) => {
+      cumulative += t.pnl;
+      return { index: i + 1, equity: Number(cumulative.toFixed(2)), date: new Date(t.date).toLocaleDateString() };
+    });
+
+    const setupCounts: Record<string, number> = {};
+    for (const t of trades) {
+      for (const tag of safeParse(t.setupTags)) {
+        setupCounts[tag] = (setupCounts[tag] || 0) + 1;
+      }
+    }
+    const setupBreakdown = Object.entries(setupCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name, count]) => ({ name, count }));
+
+    return { wins, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown };
+  }, [trades]);
+
+  if (loading) return <div className="p-8 text-base-muted text-sm">Loading dashboard...</div>;
+
+  if (stats.total === 0) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
+        <p className="text-base-muted text-sm">Log a few trades on the Journal page and your stats will show up here.</p>
+      </div>
+    );
+  }
+
+  const pieData = [
+    { name: "Wins", value: stats.wins, color: "#3f8f6b" },
+    { name: "Losses", value: stats.losses, color: "#c14f63" },
+  ];
+
+  return (
+    <div className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-semibold mb-6">Dashboard</h1>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Win rate" value={`${stats.winRate.toFixed(1)}%`} tone="accent" />
+        <StatCard label="Wins / Losses" value={`${stats.wins} / ${stats.losses}`} />
+        <StatCard label="Total PnL" value={`${stats.totalPnl >= 0 ? "+" : ""}$${stats.totalPnl.toFixed(2)}`} tone={stats.totalPnl >= 0 ? "green" : "red"} />
+        <StatCard label="Avg PnL / trade" value={`${stats.avgPnl >= 0 ? "+" : ""}$${stats.avgPnl.toFixed(2)}`} tone={stats.avgPnl >= 0 ? "green" : "red"} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 glass-panel border border-base-border rounded-2xl p-6">
+          <h2 className="text-sm font-medium text-base-muted mb-4">Equity curve</h2>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={stats.equityCurve}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2e" />
+              <XAxis dataKey="index" stroke="#8a8d93" fontSize={12} />
+              <YAxis stroke="#8a8d93" fontSize={12} />
+              <Tooltip
+                contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }}
+                labelFormatter={(v) => `Trade #${v}`}
+              />
+              <Line type="monotone" dataKey="equity" stroke="#6ee0c4" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="glass-panel border border-base-border rounded-2xl p-6">
+          <h2 className="text-sm font-medium text-base-muted mb-4">Win / Loss</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} paddingAngle={3}>
+                {pieData.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex justify-center gap-4 text-xs text-base-muted mt-2">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-pill-green-bg inline-block" /> Wins
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-pill-red-bg inline-block" /> Losses
+            </span>
+          </div>
+          <div className="text-center mt-3 text-xs text-base-muted">Rules followed: {stats.rulesFollowedRate.toFixed(0)}%</div>
+        </div>
+      </div>
+
+      {stats.setupBreakdown.length > 0 && (
+        <div className="glass-panel border border-base-border rounded-2xl p-6 mt-6">
+          <h2 className="text-sm font-medium text-base-muted mb-4">Most used setups</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={stats.setupBreakdown} layout="vertical" margin={{ left: 24 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2e" horizontal={false} />
+              <XAxis type="number" stroke="#8a8d93" fontSize={12} allowDecimals={false} />
+              <YAxis type="category" dataKey="name" stroke="#8a8d93" fontSize={12} width={130} />
+              <Tooltip contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }} />
+              <Bar dataKey="count" fill="#3d6fa8" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
+}

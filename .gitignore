@@ -1,0 +1,9 @@
+node_modules
+.next
+public/uploads
+out
+dev.db
+dev.db-journal
+*.log
+.env
+tsconfig.tsbuildinfo
