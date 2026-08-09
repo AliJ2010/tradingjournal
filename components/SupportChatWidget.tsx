@@ -60,7 +60,7 @@ export default function SupportChatWidget() {
           >
             <div className="px-4 py-3 border-b border-base-border flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-base-panel2 flex items-center justify-center shrink-0">
-                <Logo className="w-5 h-5" />
+                <Logo className="w-6 h-6" />
               </div>
               <div>
                 <div className="text-sm font-semibold">Ask about OpticTrader</div>

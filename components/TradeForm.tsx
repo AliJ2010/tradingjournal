@@ -7,6 +7,7 @@ import PillBadge, { colorForTag, colorForEmotion } from "./PillBadge";
 import NewsBanner from "./NewsBanner";
 import ImageDropField from "./ImageDropField";
 import { TRADE_FIELDS, EMOTION_TAG_SUGGESTIONS, type FieldDef } from "@/lib/tradeFields";
+import { isWeekendDate } from "@/lib/tradeDate";
 
 export type TradeDraft = {
   id?: string;
@@ -14,6 +15,7 @@ export type TradeDraft = {
   result: string;
   direction: string;
   htfBias: string;
+  instrument: string;
   entryTime: string;
   exitTime: string;
   riskPercent: number;
@@ -37,6 +39,7 @@ export function emptyDraft(date = new Date().toISOString().slice(0, 10)): TradeD
     result: "Loss",
     direction: "Long",
     htfBias: "Neutral",
+    instrument: "",
     entryTime: "",
     exitTime: "",
     riskPercent: 1,
@@ -156,6 +159,8 @@ export default function TradeForm({
   const [draft, setDraft] = useState<TradeDraft>(initial);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [dateError, setDateError] = useState("");
   const [saveButtonVisible, setSaveButtonVisible] = useState(true);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -180,10 +185,13 @@ export default function TradeForm({
   async function handleSave() {
     if (!onSave) return;
     setSaving(true);
+    setSaveError("");
     try {
       await onSave(draft);
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2000);
+    } catch (err: any) {
+      setSaveError(err.message || "Something went wrong.");
     } finally {
       setSaving(false);
     }
@@ -247,12 +255,23 @@ export default function TradeForm({
                   (readOnly ? (
                     <span className="text-sm">{draft.date}</span>
                   ) : (
-                    <input
-                      type="date"
-                      value={draft.date}
-                      onChange={(e) => set("date", e.target.value)}
-                      className="bg-base-panel2 border border-base-border rounded-md px-2 py-1 text-sm"
-                    />
+                    <div>
+                      <input
+                        type="date"
+                        value={draft.date}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value && isWeekendDate(value)) {
+                            setDateError("Markets are closed on weekends — pick a weekday.");
+                            return;
+                          }
+                          setDateError("");
+                          set("date", value);
+                        }}
+                        className="bg-base-panel2 border border-base-border rounded-md px-2 py-1 text-sm"
+                      />
+                      {dateError && <p className="text-xs text-pill-red-bg mt-1">{dateError}</p>}
+                    </div>
                   ))}
 
                 {field.type === "time" &&
@@ -312,7 +331,13 @@ export default function TradeForm({
                     <PillBadge
                       color={
                         field.key === "pnl"
-                          ? ((draft.result === "Win" ? "green" : draft.result === "Loss" ? "red" : "slate") as any)
+                          ? ((draft.result === "Win"
+                              ? "green"
+                              : draft.result === "Loss"
+                              ? "red"
+                              : draft.result === "Breakeven"
+                              ? "gold"
+                              : "slate") as any)
                           : "blue"
                       }
                       label={field.key === "riskPercent" ? `$${draft.riskPercent.toFixed(2)}` : `$${draft.pnl.toFixed(2)}`}
@@ -354,6 +379,8 @@ export default function TradeForm({
           );
         })}
       </div>
+
+      {!readOnly && saveError && <p className="px-6 pb-2 text-sm text-pill-red-bg">{saveError}</p>}
 
       {!readOnly && (
         <div className="px-6 pb-8 flex items-center gap-3">

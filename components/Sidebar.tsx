@@ -103,7 +103,7 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
           <span className="text-lg">☰</span>
         </button>
         <div className="flex items-center gap-2">
-          <Logo className="w-6 h-6" />
+          <Logo className="w-8 h-8" />
           <span className="text-sm font-semibold tracking-tight">OpticTrader</span>
         </div>
         <div className="w-9 shrink-0" />
@@ -127,8 +127,8 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
               className="fixed inset-y-0 left-0 w-72 z-50 md:hidden bg-base-panel glass-panel border-r border-base-border flex flex-col"
             >
               <div className="px-5 py-5 flex items-center gap-3 border-b border-base-border">
-                <div className="w-10 h-10 rounded-xl bg-base-panel2 flex items-center justify-center shrink-0">
-                  <Logo className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-xl bg-base-panel2 flex items-center justify-center shrink-0">
+                  <Logo className="w-10 h-10" />
                 </div>
                 <div>
                   <div className="text-sm font-semibold leading-tight tracking-tight">OpticTrader</div>
@@ -144,8 +144,8 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
 
       <aside className="hidden md:flex w-64 shrink-0 bg-base-panel/80 glass-panel border-r border-base-border flex-col h-screen sticky top-0 z-10">
         <div className="px-5 py-5 flex items-center gap-3 border-b border-base-border">
-          <div className="w-9 h-9 rounded-xl bg-base-panel2 flex items-center justify-center shrink-0">
-            <Logo className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-xl bg-base-panel2 flex items-center justify-center shrink-0">
+            <Logo className="w-10 h-10" />
           </div>
           <div>
             <div className="text-sm font-semibold leading-tight tracking-tight">OpticTrader</div>

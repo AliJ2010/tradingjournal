@@ -71,7 +71,7 @@ export default function CalendarPage() {
           <div className="text-center">
             <div className="font-medium">{format(month, "MMMM yyyy")}</div>
             <div className={`text-xs font-semibold ${monthTotal >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-              {monthTotal < 0 ? "-" : ""}${Math.abs(monthTotal).toFixed(0)} this month
+              Monthly PnL: {monthTotal < 0 ? "-" : ""}${Math.abs(monthTotal).toFixed(0)}
             </div>
           </div>
           <button onClick={() => setMonth((m) => addMonths(m, 1))} className="text-base-muted hover:text-base-text px-2">

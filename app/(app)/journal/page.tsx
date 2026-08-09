@@ -6,6 +6,7 @@ import TradeForm, { emptyDraft, type TradeDraft } from "@/components/TradeForm";
 import PillBadge from "@/components/PillBadge";
 import ExportButtons from "@/components/ExportButtons";
 import { toDayKey } from "@/lib/streak";
+import { parseTags } from "@/lib/json";
 
 type TradeRow = {
   id: string;
@@ -21,30 +22,23 @@ function tradeToDraft(t: any): TradeDraft {
     result: t.result,
     direction: t.direction,
     htfBias: t.htfBias,
+    instrument: t.instrument,
     entryTime: t.entryTime,
     exitTime: t.exitTime,
     riskPercent: t.riskPercent,
     rulesFollowed: t.rulesFollowed,
     rr: t.rr,
     pnl: t.pnl,
-    drawDirectionTags: safeParse(t.drawDirectionTags),
-    setupTags: safeParse(t.setupTags),
-    emotionTags: safeParse(t.emotionTags),
-    newsTags: safeParse(t.newsTags),
+    drawDirectionTags: parseTags(t.drawDirectionTags),
+    setupTags: parseTags(t.setupTags),
+    emotionTags: parseTags(t.emotionTags),
+    newsTags: parseTags(t.newsTags),
     whatOthersDid: t.whatOthersDid,
     notes: t.notes,
     whatWouldYouDo: t.whatWouldYouDo,
     chartImageUrl: t.chartImageUrl,
-    hiddenFields: safeParse(t.hiddenFields),
+    hiddenFields: parseTags(t.hiddenFields),
   };
-}
-
-function safeParse(v: string) {
-  try {
-    return JSON.parse(v || "[]");
-  } catch {
-    return [];
-  }
 }
 
 export default function JournalPage() {
@@ -112,14 +106,19 @@ export default function JournalPage() {
         body: JSON.stringify(payload),
       });
       const created = await res.json();
+      if (!res.ok) throw new Error(created.error || "Something went wrong.");
       await loadTrades();
       setSelectedId(created.id);
     } else {
-      await fetch(`/api/trades/${d.id}`, {
+      const res = await fetch(`/api/trades/${d.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Something went wrong.");
+      }
       await loadTrades();
     }
   }
@@ -184,6 +183,8 @@ export default function JournalPage() {
                 ? "text-pill-green-bg"
                 : single.result === "Loss"
                 ? "text-pill-red-bg"
+                : single.result === "Breakeven"
+                ? "text-pill-gold-bg"
                 : "text-base-muted"
               : totalPnl >= 0
               ? "text-pill-green-bg"
@@ -212,7 +213,7 @@ export default function JournalPage() {
                       {new Date(dayTrades[0].date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
                     </span>
                     {single ? (
-                      <PillBadge small label={single.result} color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : "slate"} />
+                      <PillBadge small label={single.result} color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : single.result === "Breakeven" ? "gold" : "slate"} />
                     ) : (
                       <PillBadge small label={`${dayTrades.length} trades`} color="blue" />
                     )}
@@ -253,8 +254,22 @@ export default function JournalPage() {
                               selectedId === t.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
                             }`}
                           >
-                            <PillBadge small label={t.result} color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : "slate"} />
-                            <span className={t.result === "Win" ? "text-pill-green-bg" : t.result === "Loss" ? "text-pill-red-bg" : "text-base-muted"}>
+                            <PillBadge
+                              small
+                              label={t.result}
+                              color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : t.result === "Breakeven" ? "gold" : "slate"}
+                            />
+                            <span
+                              className={
+                                t.result === "Win"
+                                  ? "text-pill-green-bg"
+                                  : t.result === "Loss"
+                                  ? "text-pill-red-bg"
+                                  : t.result === "Breakeven"
+                                  ? "text-pill-gold-bg"
+                                  : "text-base-muted"
+                              }
+                            >
                               {t.pnl < 0 ? "-" : ""}${Math.abs(t.pnl).toFixed(2)}
                             </span>
                           </button>

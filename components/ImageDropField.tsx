@@ -1,7 +1,36 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/85 z-[100] flex items-center justify-center p-6 cursor-zoom-out"
+      >
+        <motion.img
+          initial={{ scale: 0.95 }}
+          animate={{ scale: 1 }}
+          src={src}
+          alt="Trade chart (expanded)"
+          className="max-h-[90vh] max-w-[90vw] rounded-lg border border-base-border object-contain cursor-default"
+          onClick={(e) => e.stopPropagation()}
+        />
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-base-panel2 border border-base-border text-lg hover:bg-base-panel"
+        >
+          ✕
+        </button>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 export default function ImageDropField({
   value,
@@ -15,6 +44,7 @@ export default function ImageDropField({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const upload = useCallback(async (file: File) => {
@@ -68,16 +98,28 @@ export default function ImageDropField({
   if (readOnly) {
     if (!value) return <span className="text-base-muted text-sm">—</span>;
     return (
-      <a href={value} target="_blank" rel="noreferrer">
-        <img src={value} alt="Trade chart" className="max-h-56 rounded-lg border border-base-border hover:opacity-90 transition-opacity" />
-      </a>
+      <>
+        <img
+          src={value}
+          alt="Trade chart"
+          onClick={() => setExpanded(true)}
+          className="max-h-56 rounded-lg border border-base-border hover:opacity-90 transition-opacity cursor-zoom-in"
+        />
+        {expanded && <Lightbox src={value} onClose={() => setExpanded(false)} />}
+      </>
     );
   }
 
   if (value) {
     return (
       <div className="relative inline-block group">
-        <img src={value} alt="Trade chart" className="max-h-56 rounded-lg border border-base-border" />
+        <img
+          src={value}
+          alt="Trade chart"
+          onClick={() => setExpanded(true)}
+          className="max-h-56 rounded-lg border border-base-border cursor-zoom-in"
+        />
+        {expanded && <Lightbox src={value} onClose={() => setExpanded(false)} />}
         <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             type="button"

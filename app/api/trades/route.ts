@@ -5,6 +5,7 @@ import { serializeTags } from "@/lib/json";
 import { getRedFolderTagsForDate } from "@/lib/economicCalendar";
 import { toDayKey } from "@/lib/streak";
 import { signPnl } from "@/lib/pnl";
+import { isWeekendDate } from "@/lib/tradeDate";
 
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -31,6 +32,9 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const date = new Date(body.date || Date.now());
+  if (isWeekendDate(date)) {
+    return NextResponse.json({ error: "Markets are closed on weekends — pick a weekday." }, { status: 400 });
+  }
   const dayKey = toDayKey(date);
   const newsTags = await getRedFolderTagsForDate(dayKey).catch(() => [] as string[]);
   const result = body.result || "Loss";
@@ -42,6 +46,7 @@ export async function POST(req: NextRequest) {
       result,
       direction: body.direction || "Long",
       htfBias: body.htfBias || "Neutral",
+      instrument: body.instrument || "",
       entryTime: body.entryTime || "",
       exitTime: body.exitTime || "",
       riskPercent: Number(body.riskPercent) || 0,

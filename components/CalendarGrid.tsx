@@ -46,11 +46,11 @@ export default function CalendarGrid({
   return (
     <div className="grid grid-cols-[repeat(7,minmax(0,1fr))_auto] gap-2">
       {WEEKDAY_LABELS.map((d) => (
-        <div key={d} className="text-xs text-base-muted text-center pb-1">
+        <div key={d} className="text-sm text-base-muted text-center pb-1">
           {d}
         </div>
       ))}
-      <div className="text-xs text-base-muted text-center pb-1">Week</div>
+      <div className="text-sm text-base-muted text-center pb-1 px-1">Weekly PnL</div>
 
       {weeks.map((week, weekIdx) => {
         const weekTotal = week.reduce((sum, day) => sum + (statsByDay[format(day, "yyyy-MM-dd")]?.pnl || 0), 0);
@@ -94,21 +94,21 @@ export default function CalendarGrid({
                     inMonth ? "" : "opacity-30"
                   } ${isToday ? "ring-2 ring-accent" : ""} p-1`}
                 >
-                  <span className="absolute top-1 right-1.5 text-sm sm:text-lg font-bold leading-none text-base-text">
+                  <span className="absolute top-1 right-1.5 text-base sm:text-xl font-bold leading-none text-base-text">
                     {format(day, "d")}
                   </span>
                   {stat && (
-                    <span className="absolute bottom-1 left-1.5 text-[8px] sm:text-[10px] text-base-muted leading-tight">
+                    <span className="absolute bottom-1 left-1.5 text-[9px] sm:text-xs text-base-muted leading-tight">
                       {stat.count} {stat.count === 1 ? "trade" : "trades"}
                     </span>
                   )}
                   {stat && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
-                      <span className={`text-xs sm:text-base font-bold leading-tight ${pnlText}`}>
+                      <span className={`text-sm sm:text-lg font-bold leading-tight ${pnlText}`}>
                         {stat.pnl < 0 ? "-" : ""}${Math.abs(stat.pnl).toFixed(0)}
                       </span>
                       {stat.hasRR && (
-                        <span className="text-[8px] sm:text-[10px] text-base-muted leading-tight">{formatNumber(stat.rrSum)} RR</span>
+                        <span className="text-[9px] sm:text-xs text-base-muted leading-tight">{formatNumber(stat.rrSum)} RR</span>
                       )}
                     </div>
                   )}
@@ -117,13 +117,12 @@ export default function CalendarGrid({
             })}
             <div
               key={`total-${weekIdx}`}
-              className={`flex flex-col items-center justify-center rounded-lg border border-base-border bg-base-panel2/50 px-1.5 ${
+              className={`flex flex-col items-center justify-center rounded-lg border border-base-border bg-base-panel2/50 px-2 ${
                 weekTotal === 0 ? "opacity-50" : ""
               }`}
             >
-              <span className="text-[8px] sm:text-[10px] text-base-muted leading-tight">wk</span>
               <span
-                className={`text-[10px] sm:text-xs font-bold leading-tight ${
+                className={`text-xs sm:text-sm font-bold leading-tight ${
                   weekTotal >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"
                 }`}
               >

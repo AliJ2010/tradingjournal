@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { StatCard } from "@/components/StatCards";
+import { parseTags } from "@/lib/json";
 
 type Trade = {
   id: string;
@@ -11,15 +12,8 @@ type Trade = {
   pnl: number;
   rulesFollowed: boolean;
   setupTags: string;
+  instrument: string;
 };
-
-function safeParse(v: string): string[] {
-  try {
-    return JSON.parse(v || "[]");
-  } catch {
-    return [];
-  }
-}
 
 export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -50,7 +44,7 @@ export default function DashboardPage() {
 
     const setupCounts: Record<string, number> = {};
     for (const t of trades) {
-      for (const tag of safeParse(t.setupTags)) {
+      for (const tag of parseTags(t.setupTags)) {
         setupCounts[tag] = (setupCounts[tag] || 0) + 1;
       }
     }
@@ -59,7 +53,20 @@ export default function DashboardPage() {
       .slice(0, 8)
       .map(([name, count]) => ({ name, count }));
 
-    return { wins, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown };
+    const instrumentMap: Record<string, { count: number; wins: number; pnl: number }> = {};
+    for (const t of trades) {
+      const inst = (t.instrument || "").trim();
+      if (!inst) continue;
+      if (!instrumentMap[inst]) instrumentMap[inst] = { count: 0, wins: 0, pnl: 0 };
+      instrumentMap[inst].count += 1;
+      if (t.result === "Win" || t.result === "Breakeven") instrumentMap[inst].wins += 1;
+      instrumentMap[inst].pnl += t.pnl;
+    }
+    const instrumentBreakdown = Object.entries(instrumentMap)
+      .map(([name, v]) => ({ name, count: v.count, winRate: v.count ? (v.wins / v.count) * 100 : 0, pnl: v.pnl }))
+      .sort((a, b) => b.pnl - a.pnl);
+
+    return { wins, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown, instrumentBreakdown };
   }, [trades]);
 
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading dashboard...</div>;
@@ -95,7 +102,7 @@ export default function DashboardPage() {
                   contentStyle={{ background: "#1c1c1f", border: "1px solid #2a2a2e", borderRadius: 8, fontSize: 12 }}
                   labelFormatter={(v) => `Trade #${v}`}
                 />
-                <Line type="monotone" dataKey="equity" stroke="#6ee0c4" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="equity" name="Equity" stroke="#6ee0c4" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -141,6 +148,36 @@ export default function DashboardPage() {
               <Bar dataKey="count" fill="#3d6fa8" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {stats.instrumentBreakdown.length > 1 && (
+        <div className="glass-panel border border-base-border rounded-2xl p-6 mt-6">
+          <h2 className="text-sm font-medium text-base-muted mb-4">Instrument comparison</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-base-muted text-left border-b border-base-border">
+                  <th className="pb-2 font-medium">Instrument</th>
+                  <th className="pb-2 font-medium text-right">Trades</th>
+                  <th className="pb-2 font-medium text-right">Win rate</th>
+                  <th className="pb-2 font-medium text-right">PnL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.instrumentBreakdown.map((inst) => (
+                  <tr key={inst.name} className="border-b border-base-border/60 last:border-b-0">
+                    <td className="py-2 font-medium">{inst.name}</td>
+                    <td className="py-2 text-right text-base-muted">{inst.count}</td>
+                    <td className="py-2 text-right text-base-muted">{inst.winRate.toFixed(0)}%</td>
+                    <td className={`py-2 text-right font-semibold ${inst.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
+                      {inst.pnl < 0 ? "-" : "+"}${Math.abs(inst.pnl).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

@@ -59,7 +59,7 @@ export default function VerifyEmailForm({ email }: { email: string }) {
     >
       <div className="mb-6 text-center">
         <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-base-panel2 flex items-center justify-center">
-          <Logo className="w-8 h-8" />
+          <Logo className="w-11 h-11" />
         </div>
         <h1 className="text-xl font-semibold text-base-text tracking-tight">Confirm your email</h1>
         <p className="text-sm text-base-muted mt-1">

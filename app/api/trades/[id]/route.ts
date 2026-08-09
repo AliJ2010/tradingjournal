@@ -5,6 +5,7 @@ import { serializeTags } from "@/lib/json";
 import { getRedFolderTagsForDate } from "@/lib/economicCalendar";
 import { toDayKey } from "@/lib/streak";
 import { signPnl } from "@/lib/pnl";
+import { isWeekendDate } from "@/lib/tradeDate";
 
 async function loadOwnedTrade(id: string, userId: string) {
   const trade = await prisma.trade.findUnique({ where: { id } });
@@ -30,6 +31,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const body = await req.json();
   const date = new Date(body.date || existing.date);
+  if (isWeekendDate(date)) {
+    return NextResponse.json({ error: "Markets are closed on weekends — pick a weekday." }, { status: 400 });
+  }
   const dayKey = toDayKey(date);
   const newsTags = await getRedFolderTagsForDate(dayKey).catch(() => [] as string[]);
   const result = body.result;
@@ -41,6 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       result,
       direction: body.direction,
       htfBias: body.htfBias,
+      instrument: body.instrument,
       entryTime: body.entryTime,
       exitTime: body.exitTime,
       riskPercent: Number(body.riskPercent) || 0,

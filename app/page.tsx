@@ -37,7 +37,7 @@ export default async function Home() {
       <nav className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-8 py-4 sm:py-6 max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-lg bg-base-panel2 flex items-center justify-center shrink-0">
-            <Logo className="w-6 h-6" />
+            <Logo className="w-8 h-8" />
           </div>
           <span className="font-semibold tracking-tight">OpticTrader</span>
         </div>

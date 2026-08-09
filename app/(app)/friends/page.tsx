@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TradeForm, { type TradeDraft } from "@/components/TradeForm";
 import PillBadge from "@/components/PillBadge";
+import { parseTags } from "@/lib/json";
 
 type FriendLink = {
   id: string;
@@ -12,14 +13,6 @@ type FriendLink = {
   friend: { id: string; username: string; displayName: string };
 };
 
-function safeParse(v: string) {
-  try {
-    return JSON.parse(v || "[]");
-  } catch {
-    return [];
-  }
-}
-
 function tradeToDraft(t: any): TradeDraft {
   return {
     id: t.id,
@@ -27,21 +20,22 @@ function tradeToDraft(t: any): TradeDraft {
     result: t.result,
     direction: t.direction,
     htfBias: t.htfBias,
+    instrument: t.instrument,
     entryTime: t.entryTime,
     exitTime: t.exitTime,
     riskPercent: t.riskPercent,
     rulesFollowed: t.rulesFollowed,
     rr: t.rr,
     pnl: t.pnl,
-    drawDirectionTags: safeParse(t.drawDirectionTags),
-    setupTags: safeParse(t.setupTags),
-    emotionTags: safeParse(t.emotionTags),
-    newsTags: safeParse(t.newsTags),
+    drawDirectionTags: parseTags(t.drawDirectionTags),
+    setupTags: parseTags(t.setupTags),
+    emotionTags: parseTags(t.emotionTags),
+    newsTags: parseTags(t.newsTags),
     whatOthersDid: t.whatOthersDid,
     notes: t.notes,
     whatWouldYouDo: t.whatWouldYouDo,
     chartImageUrl: t.chartImageUrl,
-    hiddenFields: safeParse(t.hiddenFields),
+    hiddenFields: parseTags(t.hiddenFields),
   };
 }
 
@@ -155,7 +149,13 @@ export default function FriendsPage() {
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm">{t.date ? new Date(t.date).toLocaleDateString() : "—"}</span>
-                  {t.result && <PillBadge small label={t.result} color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : "slate"} />}
+                  {t.result && (
+                    <PillBadge
+                      small
+                      label={t.result}
+                      color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : t.result === "Breakeven" ? "gold" : "slate"}
+                    />
+                  )}
                 </div>
               </button>
             ))}

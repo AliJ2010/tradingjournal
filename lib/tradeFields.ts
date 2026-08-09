@@ -47,6 +47,7 @@ export const TRADE_FIELDS: FieldDef[] = [
       { value: "Neutral", color: "slate" },
     ],
   },
+  { key: "instrument", label: "Instrument Traded", icon: "target", type: "text", hideable: true },
   { key: "date", label: "Date", icon: "calendar", type: "date", hideable: false },
   { key: "entryTime", label: "Entry Time", icon: "clock", type: "time", hideable: true },
   { key: "exitTime", label: "Exit Time", icon: "clock", type: "time", hideable: true },

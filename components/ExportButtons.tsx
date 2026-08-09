@@ -3,14 +3,7 @@
 import { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
-function parseTags(v: string): string[] {
-  try {
-    return JSON.parse(v || "[]");
-  } catch {
-    return [];
-  }
-}
+import { parseTags } from "@/lib/json";
 
 function escapeCsv(v: unknown) {
   const s = String(v ?? "");
@@ -41,13 +34,14 @@ export default function ExportButtons() {
     try {
       const trades = await getTrades();
       const headers = [
-        "Date", "Result", "Direction", "HTF Bias", "Entry Time", "Exit Time",
+        "Date", "Result", "Direction", "Instrument", "HTF Bias", "Entry Time", "Exit Time",
         "Risk ($)", "RR", "PnL", "Setup Tags", "Emotion Tags", "Rules Followed", "Notes",
       ];
       const rows = trades.map((t: any) => [
         new Date(t.date).toLocaleDateString(),
         t.result,
         t.direction,
+        t.instrument,
         t.htfBias,
         t.entryTime,
         t.exitTime,
