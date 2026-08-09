@@ -198,7 +198,7 @@ export default function TradeForm({
             exit={{ opacity: 0, y: -12 }}
             onClick={handleSave}
             disabled={saving}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-30 bg-brand-gradient text-white font-semibold rounded-full px-5 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
+            className="fixed top-4 right-4 sm:right-6 z-30 bg-brand-gradient text-white font-semibold rounded-full px-5 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save entry?"}
           </motion.button>

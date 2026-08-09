@@ -103,7 +103,7 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
           <span className="text-lg">☰</span>
         </button>
         <div className="flex items-center gap-2">
-          <Logo className="w-5 h-5" />
+          <Logo className="w-6 h-6" />
           <span className="text-sm font-semibold tracking-tight">OpticTrader</span>
         </div>
         <div className="w-9 shrink-0" />
@@ -127,8 +127,8 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
               className="fixed inset-y-0 left-0 w-72 z-50 md:hidden bg-base-panel glass-panel border-r border-base-border flex flex-col"
             >
               <div className="px-5 py-5 flex items-center gap-3 border-b border-base-border">
-                <div className="w-9 h-9 rounded-xl bg-base-panel2 flex items-center justify-center shrink-0">
-                  <Logo className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl bg-base-panel2 flex items-center justify-center shrink-0">
+                  <Logo className="w-7 h-7" />
                 </div>
                 <div>
                   <div className="text-sm font-semibold leading-tight tracking-tight">OpticTrader</div>
