@@ -130,12 +130,15 @@ export default async function Home() {
       </main>
 
       <footer className="relative z-10 text-center text-xs text-base-muted pb-4 px-4 space-y-2">
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link href="/support" className="hover:text-base-text transition-colors">
             Support
           </Link>
           <a href="https://discord.gg/wjhWDjJG6z" target="_blank" rel="noopener noreferrer" className="hover:text-base-text transition-colors">
             Discord
+          </a>
+          <a href="mailto:support.optictrader@gmail.com" className="hover:text-base-text transition-colors">
+            support.optictrader@gmail.com
           </a>
         </div>
         <InstallPwaHint />

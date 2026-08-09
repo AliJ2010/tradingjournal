@@ -1,3 +1,5 @@
+export const SUPPORT_EMAIL = "support.optictrader@gmail.com";
+
 export function isEmailConfigured() {
   return Boolean(process.env.RESEND_API_KEY);
 }
@@ -8,7 +10,7 @@ export function getBaseUrl() {
   return "http://localhost:3000";
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string, replyTo: string = SUPPORT_EMAIL) {
   if (!process.env.RESEND_API_KEY) return { sent: false, reason: "not configured" };
 
   try {
@@ -23,6 +25,7 @@ async function sendEmail(to: string, subject: string, html: string) {
         to,
         subject,
         html,
+        reply_to: replyTo,
       }),
     });
     if (!res.ok) return { sent: false, reason: await res.text() };
@@ -159,6 +162,23 @@ export function sendPasswordResetEmail(to: string, displayName: string, resetUrl
       ctaLabel: "Reset your password",
       ctaUrl: resetUrl,
     })
+  );
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
+}
+
+export function sendSupportNotification(name: string, fromEmail: string, message: string) {
+  return sendEmail(
+    SUPPORT_EMAIL,
+    `New support message from ${name}`,
+    emailShell({
+      heading: "New support message",
+      bodyHtml: `<p><strong>From:</strong> ${escapeHtml(name)} (${escapeHtml(fromEmail)})</p>
+        <p style="white-space:pre-wrap;">${escapeHtml(message)}</p>`,
+    }),
+    fromEmail
   );
 }
 

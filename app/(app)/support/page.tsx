@@ -49,6 +49,14 @@ export default function SupportPage() {
       <h1 className="text-2xl font-semibold mb-1">Support</h1>
       <p className="text-sm text-base-muted mb-8">Answers to common questions, or reach out directly below.</p>
 
+      <p className="text-sm text-base-muted mb-8">
+        Prefer email? Reach us directly at{" "}
+        <a href="mailto:support.optictrader@gmail.com" className="text-accent hover:underline">
+          support.optictrader@gmail.com
+        </a>
+        .
+      </p>
+
       <div className="glass-panel border border-base-border rounded-2xl divide-y divide-base-border/60 mb-8">
         {FAQS.map((faq, i) => (
           <div key={faq.q}>

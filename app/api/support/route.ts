@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { sendSupportNotification } from "@/lib/email";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,5 +15,6 @@ export async function POST(req: NextRequest) {
   }
 
   await prisma.supportMessage.create({ data: { name, email, message } });
+  sendSupportNotification(name, email, message).catch(() => {});
   return NextResponse.json({ ok: true });
 }
