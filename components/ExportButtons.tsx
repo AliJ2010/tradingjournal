@@ -60,7 +60,7 @@ export default function ExportButtons() {
         (t.notes || "").replace(/\n/g, " "),
       ]);
       const csv = [headers, ...rows].map((r) => r.map(escapeCsv).join(",")).join("\n");
-      download(csv, `vantage-journal-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv");
+      download(csv, `optictrader-journal-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv");
     } finally {
       setLoading(null);
     }
@@ -72,7 +72,7 @@ export default function ExportButtons() {
       const trades = await getTrades();
       const doc = new jsPDF();
       doc.setFontSize(16);
-      doc.text("Vantage — Trading Journal", 14, 16);
+      doc.text("OpticTrader — Trading Journal", 14, 16);
       doc.setFontSize(10);
       doc.setTextColor(120);
       doc.text(`Exported ${new Date().toLocaleDateString()} · ${trades.length} trades`, 14, 22);
@@ -92,7 +92,7 @@ export default function ExportButtons() {
         headStyles: { fillColor: [124, 92, 255] },
       });
 
-      doc.save(`vantage-journal-${new Date().toISOString().slice(0, 10)}.pdf`);
+      doc.save(`optictrader-journal-${new Date().toISOString().slice(0, 10)}.pdf`);
     } finally {
       setLoading(null);
     }

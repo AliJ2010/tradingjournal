@@ -1,8 +1,14 @@
-export default function AmbientBackground() {
+export default function AmbientBackground({ variant = "default" }: { variant?: "default" | "app" }) {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-accent/25 blur-[120px] animate-float-glow" />
       <div className="absolute bottom-[-200px] right-[-160px] w-[480px] h-[480px] rounded-full bg-accent-2/20 blur-[130px] animate-float-glow" style={{ animationDelay: "3s" }} />
+      {variant === "app" && (
+        <div
+          className="absolute top-1/3 right-1/4 w-[420px] h-[420px] rounded-full blur-[130px] animate-float-glow"
+          style={{ backgroundColor: "rgba(59,130,246,0.16)", animationDelay: "1.5s" }}
+        />
+      )}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{

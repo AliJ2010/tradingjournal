@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import AmbientBackground from "@/components/AmbientBackground";
 import LandingMockup from "@/components/LandingMockup";
 import LandingChatWidget from "@/components/LandingChatWidget";
+import Logo from "@/components/Logo";
 
 const MARKETS = ["NQ", "ES", "YM", "CL", "GC", "Forex", "Crypto", "Stocks"];
 
@@ -35,10 +36,10 @@ export default async function Home() {
 
       <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-            <span className="text-sm">📈</span>
+          <div className="w-9 h-9 rounded-lg bg-base-panel2 flex items-center justify-center">
+            <Logo className="w-6 h-6" />
           </div>
-          <span className="font-semibold tracking-tight">Vantage</span>
+          <span className="font-semibold tracking-tight">OpticTrader</span>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/pricing" className="text-sm text-base-muted hover:text-base-text transition-colors hidden sm:inline">
@@ -66,7 +67,7 @@ export default async function Home() {
           <span className="bg-brand-gradient bg-clip-text text-transparent">See your edge.</span>
         </h1>
         <p className="text-base-muted text-lg max-w-xl mx-auto mb-9">
-          Vantage is a trading journal that tracks every setup, catches your patterns, and coaches you toward consistency — with an AI
+          OpticTrader is a trading journal that tracks every setup, catches your patterns, and coaches you toward consistency — with an AI
           that actually knows your history.
         </p>
         <div className="flex items-center justify-center gap-3 mb-16">

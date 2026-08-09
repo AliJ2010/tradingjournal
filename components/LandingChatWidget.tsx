@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Logo from "./Logo";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -53,11 +54,11 @@ export default function LandingChatWidget() {
             className="mb-3 w-80 sm:w-96 h-[28rem] glass-panel border border-base-border rounded-2xl shadow-card flex flex-col overflow-hidden"
           >
             <div className="px-4 py-3 border-b border-base-border flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-brand-gradient flex items-center justify-center shrink-0">
-                <span className="text-xs">📈</span>
+              <div className="w-7 h-7 rounded-lg bg-base-panel2 flex items-center justify-center shrink-0">
+                <Logo className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-sm font-semibold">Ask about Vantage</div>
+                <div className="text-sm font-semibold">Ask about OpticTrader</div>
                 <div className="text-xs text-base-muted">Usually replies in seconds</div>
               </div>
             </div>

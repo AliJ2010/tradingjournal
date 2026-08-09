@@ -8,7 +8,7 @@ const FAQS = [
   { q: "What happens when my trial ends?", a: "Billing isn't live yet, so nothing is locked — you'll just see a banner pointing you to the Pricing page for when it launches." },
   { q: "Can I export my data?", a: "Yes — head to the Journal page and use the Export button to download your trades as CSV or PDF." },
   { q: "Is my data private?", a: "Yes. Only you can see your full journal. If you add a friend, any field you mark hidden stays hidden from them." },
-  { q: "What instruments does Vantage support?", a: "Any — set yours on the Settings page and the AI Coach and news calendar will use it." },
+  { q: "What instruments does OpticTrader support?", a: "Any — set yours on the Settings page and the AI Coach and news calendar will use it." },
 ];
 
 export default function SupportPage() {

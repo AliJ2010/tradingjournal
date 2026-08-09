@@ -4,8 +4,9 @@
 
 html,
 body {
-  background-color: #08090f;
-  color: #f5f6fb;
+  background-color: #0b0c15;
+  color: #f8f9fc;
+  font-weight: 500;
 }
 
 .field-label {
@@ -14,7 +15,7 @@ body {
 }
 
 .glass-panel {
-  background: linear-gradient(180deg, rgba(25, 27, 42, 0.9) 0%, rgba(18, 19, 30, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(28, 30, 51, 0.9) 0%, rgba(20, 21, 39, 0.9) 100%);
   backdrop-filter: blur(14px);
 }
 

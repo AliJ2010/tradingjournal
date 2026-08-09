@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen bg-base-bg text-base-text relative">
-      <AmbientBackground />
+      <AmbientBackground variant="app" />
       <Sidebar displayName={user.displayName} role={user.role} />
       <main className="flex-1 min-w-0">
         <TrialBanner user={user} />

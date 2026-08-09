@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import Logo from "@/components/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,10 +45,10 @@ export default function LoginPage() {
       className="glass-panel border border-base-border rounded-2xl p-8 shadow-card"
     >
       <div className="mb-6 text-center">
-        <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-brand-gradient flex items-center justify-center shadow-glow">
-          <span className="text-xl">📈</span>
+        <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-base-panel2 flex items-center justify-center">
+          <Logo className="w-8 h-8" />
         </div>
-        <h1 className="text-xl font-semibold text-base-text tracking-tight">Vantage</h1>
+        <h1 className="text-xl font-semibold text-base-text tracking-tight">OpticTrader</h1>
         <p className="text-sm text-base-muted mt-1">Log in to your journal</p>
       </div>
 

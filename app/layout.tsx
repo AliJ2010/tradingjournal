@@ -3,7 +3,7 @@ import "./globals.css";
 import MouseSpotlight from "@/components/MouseSpotlight";
 
 export const metadata: Metadata = {
-  title: "Vantage",
+  title: "OpticTrader",
   description: "A personal trading journal",
 };
 

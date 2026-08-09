@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Logo from "./Logo";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
@@ -30,11 +31,11 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
   return (
     <aside className="w-64 shrink-0 bg-base-panel/80 glass-panel border-r border-base-border flex flex-col h-screen sticky top-0 z-10">
       <div className="px-5 py-5 flex items-center gap-3 border-b border-base-border">
-        <div className="w-9 h-9 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow shrink-0">
-          <span className="text-base">📈</span>
+        <div className="w-9 h-9 rounded-xl bg-base-panel2 flex items-center justify-center shrink-0">
+          <Logo className="w-6 h-6" />
         </div>
         <div>
-          <div className="text-sm font-semibold leading-tight tracking-tight">Vantage</div>
+          <div className="text-sm font-semibold leading-tight tracking-tight">OpticTrader</div>
           <div className="text-xs text-base-muted leading-tight">{displayName}</div>
         </div>
       </div>
