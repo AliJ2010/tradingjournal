@@ -31,10 +31,12 @@ export default function CalendarGrid({
   month,
   statsByDay,
   onSelectDay,
+  expandedKey,
 }: {
   month: Date;
   statsByDay: Record<string, DayStat>;
   onSelectDay?: (dayKey: string) => void;
+  expandedKey?: string | null;
 }) {
   const start = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
   const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
@@ -86,6 +88,8 @@ export default function CalendarGrid({
                 }
               }
 
+              const isExpanded = key === expandedKey;
+
               return (
                 <motion.button
                   key={key}
@@ -93,7 +97,7 @@ export default function CalendarGrid({
                   whileHover={stat ? { scale: 1.04 } : {}}
                   className={`relative aspect-square rounded-lg border ${border} ${bg} ${
                     inMonth ? "" : "opacity-30"
-                  } ${isToday ? "ring-2 ring-accent" : ""} p-0.5 sm:p-1`}
+                  } ${isToday ? "ring-2 ring-accent" : ""} ${isExpanded ? "invisible" : ""} p-0.5 sm:p-1`}
                 >
                   <span className="absolute top-0.5 right-1 sm:top-1 sm:right-1.5 text-[9px] sm:text-lg font-bold leading-none text-base-text">
                     {format(day, "d")}

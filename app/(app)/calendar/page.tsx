@@ -105,7 +105,7 @@ export default function CalendarPage() {
             →
           </button>
         </div>
-        <CalendarGrid month={month} statsByDay={statsByDay} onSelectDay={setSelectedDayKey} />
+        <CalendarGrid month={month} statsByDay={statsByDay} onSelectDay={setSelectedDayKey} expandedKey={selectedDayKey} />
       </div>
 
       {selectedDayKey && (
@@ -113,7 +113,7 @@ export default function CalendarPage() {
           initial={{ opacity: 0, y: 48, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: "spring", stiffness: 380, damping: 34 }}
-          className="fixed inset-0 z-50 bg-base-bg overflow-y-auto flex flex-col"
+          className="fixed inset-0 z-50 bg-base-bg/55 backdrop-blur-md overflow-y-auto flex flex-col"
         >
           <button
             onClick={() => setSelectedDayKey(null)}
