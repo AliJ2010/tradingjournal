@@ -1,10 +1,7 @@
 import { prisma } from "./db";
 import { formatISO } from "date-fns";
 
-const FEED_URLS = [
-  "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
-  "https://nfs.faireconomy.media/ff_calendar_nextweek.json",
-];
+const FEED_URLS = ["https://nfs.faireconomy.media/ff_calendar_thisweek.json"];
 
 type FFEvent = {
   title: string;

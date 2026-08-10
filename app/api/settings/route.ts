@@ -38,5 +38,6 @@ export async function PUT(req: NextRequest) {
     instrument: updated.instrument,
     hasApiKey: Boolean(updated.anthropicApiKey),
     apiKeyPreview: updated.anthropicApiKey ? `••••${updated.anthropicApiKey.slice(-4)}` : null,
+    billing: getPlanStatus(updated),
   });
 }

@@ -72,6 +72,7 @@ model Trade {
   direction   String
   htfBias     String
   instrument  String   @default("")
+  timeFrame   String   @default("")
   entryTime   String   @default("")
   exitTime    String   @default("")
   riskPercent Float    @default(0)

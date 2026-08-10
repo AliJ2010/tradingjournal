@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
       direction: body.direction || "Long",
       htfBias: body.htfBias || "Neutral",
       instrument: body.instrument || "",
+      timeFrame: body.timeFrame || "",
       entryTime: body.entryTime || "",
       exitTime: body.exitTime || "",
       riskPercent: Number(body.riskPercent) || 0,

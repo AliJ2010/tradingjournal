@@ -16,6 +16,7 @@ export type TradeDraft = {
   direction: string;
   htfBias: string;
   instrument: string;
+  timeFrame: string;
   entryTime: string;
   exitTime: string;
   riskPercent: number;
@@ -40,6 +41,7 @@ export function emptyDraft(date = new Date().toISOString().slice(0, 10)): TradeD
     direction: "Long",
     htfBias: "Neutral",
     instrument: "",
+    timeFrame: "",
     entryTime: "",
     exitTime: "",
     riskPercent: 1,

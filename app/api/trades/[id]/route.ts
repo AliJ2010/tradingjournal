@@ -46,6 +46,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       direction: body.direction,
       htfBias: body.htfBias,
       instrument: body.instrument,
+      timeFrame: body.timeFrame,
       entryTime: body.entryTime,
       exitTime: body.exitTime,
       riskPercent: Number(body.riskPercent) || 0,

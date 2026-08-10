@@ -21,6 +21,7 @@ function tradeToDraft(t: any): TradeDraft {
     direction: t.direction,
     htfBias: t.htfBias,
     instrument: t.instrument,
+    timeFrame: t.timeFrame,
     entryTime: t.entryTime,
     exitTime: t.exitTime,
     riskPercent: t.riskPercent,

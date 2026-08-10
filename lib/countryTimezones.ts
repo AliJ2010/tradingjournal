@@ -92,7 +92,6 @@ export const COUNTRY_TIMEZONES: CountryZone[] = [
   { label: "Jordan", zone: "Asia/Amman" },
   { label: "Kazakhstan", zone: "Asia/Almaty" },
   { label: "Kenya", zone: "Africa/Nairobi" },
-  { label: "Kosovo", zone: "Europe/Belgrade" },
   { label: "Kuwait", zone: "Asia/Kuwait" },
   { label: "Kyrgyzstan", zone: "Asia/Bishkek" },
   { label: "Laos", zone: "Asia/Vientiane" },

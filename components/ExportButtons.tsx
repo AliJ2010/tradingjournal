@@ -34,7 +34,7 @@ export default function ExportButtons() {
     try {
       const trades = await getTrades();
       const headers = [
-        "Date", "Result", "Direction", "Instrument", "HTF Bias", "Entry Time", "Exit Time",
+        "Date", "Result", "Direction", "Instrument", "Time Frame", "HTF Bias", "Entry Time", "Exit Time",
         "Risk ($)", "RR", "PnL", "Setup Tags", "Emotion Tags", "Rules Followed", "Notes",
       ];
       const rows = trades.map((t: any) => [
@@ -42,6 +42,7 @@ export default function ExportButtons() {
         t.result,
         t.direction,
         t.instrument,
+        t.timeFrame,
         t.htfBias,
         t.entryTime,
         t.exitTime,
