@@ -1,25 +1,31 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { animate } from "framer-motion";
 
-export function useCountUp(target: number, duration = 0.7) {
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+export function useCountUp(target: number, duration = 700) {
   const [value, setValue] = useState(0);
-  const prevTarget = useRef(0);
-  const first = useRef(true);
+  const valueRef = useRef(0);
 
   useEffect(() => {
-    const from = first.current ? 0 : prevTarget.current;
-    first.current = false;
-    prevTarget.current = target;
-    const controls = animate(from, target, {
-      duration,
-      ease: [0.16, 1, 0.3, 1],
-      onUpdate: setValue,
-    });
-    return () => controls.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target]);
+    const from = valueRef.current;
+    if (from === target) return;
+
+    const start = Date.now();
+    const id = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const t = Math.min(1, elapsed / duration);
+      const next = from + (target - from) * easeOutCubic(t);
+      valueRef.current = next;
+      setValue(next);
+      if (t >= 1) clearInterval(id);
+    }, 16);
+
+    return () => clearInterval(id);
+  }, [target, duration]);
 
   return value;
 }

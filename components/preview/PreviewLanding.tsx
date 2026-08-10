@@ -369,19 +369,31 @@ function UnderstandVisual() {
 }
 
 function ImproveVisual() {
-  const days = [
-    12, -8, 0, 22, 5, -3, 18, 0, -14, 9, 26, 4, 0, -6, 11, 15, -2, 0, 19, 7, -9, 13, 0, 21, -4, 8, 0, 16,
-  ];
+  // Generated client-side only (post-mount) so server/client renders don't mismatch on random values.
+  const [days, setDays] = useState<(number | null)[] | null>(null);
+
+  useEffect(() => {
+    setDays(
+      Array.from({ length: 28 }, () => {
+        const r = Math.random();
+        if (r < 0.15) return null; // no trade logged that day
+        if (r < 0.28) return 0; // breakeven
+        const magnitude = 4 + Math.random() * 26;
+        return r < 0.64 ? magnitude : -magnitude;
+      })
+    );
+  }, []);
+
   return (
     <BrowserFrame url="optictrader.me/calendar">
       <div className="grid grid-cols-7 gap-1.5">
-        {days.map((d, i) => (
+        {(days ?? Array(28).fill(null)).map((d, i) => (
           <div
             key={i}
             className={`aspect-square rounded-sm ${
-              d === 0 ? "bg-base-panel2" : d > 0 ? "bg-pill-green-bg/70" : "bg-pill-red-bg/60"
+              d === null ? "bg-base-panel2/50" : d === 0 ? "bg-pill-gold-bg/70" : d > 0 ? "bg-pill-green-bg/70" : "bg-pill-red-bg/60"
             }`}
-            style={{ opacity: d === 0 ? 0.35 : 0.4 + Math.min(Math.abs(d), 25) / 40 }}
+            style={d !== null && d !== 0 ? { opacity: 0.4 + Math.min(Math.abs(d), 25) / 40 } : undefined}
           />
         ))}
       </div>

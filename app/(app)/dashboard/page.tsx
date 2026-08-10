@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { StatCard } from "@/components/StatCards";
 import { parseTags } from "@/lib/json";
 import { formatMoney } from "@/lib/pnl";
+import { useCountUp } from "@/lib/useCountUp";
 
 type Trade = {
   id: string;
@@ -86,6 +87,13 @@ export default function DashboardPage() {
     return { wins, pureWins, breakevens, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown, instrumentBreakdown, tradeLog };
   }, [trades]);
 
+  const winRateCount = useCountUp(stats.winRate);
+  const pureWinsCount = useCountUp(stats.pureWins);
+  const breakevensCount = useCountUp(stats.breakevens);
+  const lossesCount = useCountUp(stats.losses);
+  const totalPnlCount = useCountUp(stats.totalPnl);
+  const avgPnlCount = useCountUp(stats.avgPnl);
+
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading dashboard...</div>;
 
   const pieData = [
@@ -98,26 +106,26 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-semibold mb-6">Dashboard</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Win rate" value={`${stats.winRate.toFixed(1)}%`} tone="accent" />
+        <StatCard label="Win rate" value={`${winRateCount.toFixed(1)}%`} tone="accent" />
         <div className="glass-panel border border-base-border rounded-2xl p-5">
           <div className="text-xs text-base-muted mb-1.5">Wins / BE / Losses</div>
           <div className="text-2xl font-semibold">
-            <span className="text-pill-green-bg">{stats.pureWins}</span>
+            <span className="text-pill-green-bg">{Math.round(pureWinsCount)}</span>
             <span className="text-base-muted"> / </span>
-            <span className="text-pill-gold-bg">{stats.breakevens}</span>
+            <span className="text-pill-gold-bg">{Math.round(breakevensCount)}</span>
             <span className="text-base-muted"> / </span>
-            <span className="text-pill-red-bg">{stats.losses}</span>
+            <span className="text-pill-red-bg">{Math.round(lossesCount)}</span>
           </div>
         </div>
         <StatCard
           label="Total PnL"
-          value={`${stats.totalPnl >= 0 ? "+" : "-"}$${formatMoney(stats.totalPnl, 2)}`}
-          tone={stats.totalPnl >= 0 ? "green" : "red"}
+          value={`${totalPnlCount >= 0 ? "+" : "-"}$${formatMoney(totalPnlCount, 2)}`}
+          tone={totalPnlCount >= 0 ? "green" : "red"}
         />
         <StatCard
           label="Avg PnL / trade"
-          value={`${stats.avgPnl >= 0 ? "+" : "-"}$${formatMoney(stats.avgPnl, 2)}`}
-          tone={stats.avgPnl >= 0 ? "green" : "red"}
+          value={`${avgPnlCount >= 0 ? "+" : "-"}$${formatMoney(avgPnlCount, 2)}`}
+          tone={avgPnlCount >= 0 ? "green" : "red"}
         />
       </div>
 
