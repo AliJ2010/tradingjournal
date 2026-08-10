@@ -4,16 +4,46 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { addMonths, subMonths, format, isSameMonth, parseISO } from "date-fns";
 import CalendarGrid, { type DayStat } from "@/components/CalendarGrid";
+import TradeForm, { type TradeDraft } from "@/components/TradeForm";
 import { computeStreaks, toDayKey } from "@/lib/streak";
 import { parseRRMagnitude } from "@/lib/rr";
 import { formatMoney } from "@/lib/pnl";
+import { parseTags } from "@/lib/json";
 
 type Trade = { id: string; date: string; result: string; pnl: number; rr: string };
+
+function tradeToDraft(t: any): TradeDraft {
+  return {
+    id: t.id,
+    date: new Date(t.date).toISOString().slice(0, 10),
+    result: t.result,
+    direction: t.direction,
+    htfBias: t.htfBias,
+    instrument: t.instrument,
+    timeFrame: t.timeFrame,
+    entryTime: t.entryTime,
+    exitTime: t.exitTime,
+    riskPercent: t.riskPercent,
+    rulesFollowed: t.rulesFollowed,
+    rr: t.rr,
+    pnl: t.pnl,
+    drawDirectionTags: parseTags(t.drawDirectionTags),
+    setupTags: parseTags(t.setupTags),
+    emotionTags: parseTags(t.emotionTags),
+    newsTags: parseTags(t.newsTags),
+    whatOthersDid: t.whatOthersDid,
+    notes: t.notes,
+    whatWouldYouDo: t.whatWouldYouDo,
+    chartImageUrl: t.chartImageUrl,
+    hiddenFields: parseTags(t.hiddenFields),
+  };
+}
 
 export default function CalendarPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [month, setMonth] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/trades")
@@ -52,6 +82,11 @@ export default function CalendarPage() {
     return Object.entries(statsByDay).reduce((sum, [key, stat]) => (isSameMonth(parseISO(key), month) ? sum + stat.pnl : sum), 0);
   }, [statsByDay, month]);
 
+  const selectedDayTrades = useMemo(() => {
+    if (!selectedDayKey) return [];
+    return trades.filter((t) => toDayKey(t.date) === selectedDayKey);
+  }, [trades, selectedDayKey]);
+
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading calendar...</div>;
 
   return (
@@ -79,8 +114,29 @@ export default function CalendarPage() {
             →
           </button>
         </div>
-        <CalendarGrid month={month} statsByDay={statsByDay} />
+        <CalendarGrid month={month} statsByDay={statsByDay} onSelectDay={setSelectedDayKey} />
       </div>
+
+      {selectedDayKey && (
+        <motion.div
+          initial={{ opacity: 0, y: 48, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 380, damping: 34 }}
+          className="fixed inset-0 z-50 bg-base-bg overflow-y-auto"
+        >
+          <button
+            onClick={() => setSelectedDayKey(null)}
+            className="sticky top-0 z-10 bg-base-bg/95 backdrop-blur-sm border-b border-base-border w-full text-left px-6 py-4 text-sm text-accent hover:underline"
+          >
+            ← Back to calendar
+          </button>
+          {selectedDayTrades.map((t) => (
+            <div key={t.id} className="border-b border-base-border">
+              <TradeForm initial={tradeToDraft(t)} readOnly />
+            </div>
+          ))}
+        </motion.div>
+      )}
     </div>
   );
 }

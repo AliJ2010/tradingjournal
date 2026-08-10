@@ -174,7 +174,7 @@ export default function JournalPage() {
           <ExportButtons />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-1">
+        <div className="md:flex-1 md:overflow-y-auto px-2 pb-4 space-y-1">
           {groupedDays.length === 0 && <p className="px-3 text-sm text-base-muted">No entries yet. Log your first trade.</p>}
           {groupedDays.map(({ key, trades: dayTrades }) => {
             const single = dayTrades.length === 1 ? dayTrades[0] : null;
