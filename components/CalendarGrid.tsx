@@ -118,7 +118,7 @@ export default function CalendarGrid({
             })}
             <div
               key={`total-${weekIdx}`}
-              className={`flex flex-col items-center justify-center rounded-lg border border-base-border bg-base-panel2/50 px-2 ${
+              className={`hidden sm:flex flex-col items-center justify-center rounded-lg border border-base-border bg-base-panel2/50 px-2 ${
                 weekTotal === 0 ? "opacity-50" : ""
               }`}
             >
