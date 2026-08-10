@@ -33,6 +33,7 @@ export async function GET() {
     configured: isCoachConfigured(user.anthropicApiKey),
     usedThisMonth,
     limit: Number.isFinite(limit) ? limit : null,
+    hasProfile: Boolean(user.traderProfile),
   });
 }
 
@@ -91,6 +92,7 @@ export async function POST(req: NextRequest) {
     topSetups,
     topEmotions,
     rulesFollowedRate,
+    traderProfile: user.traderProfile,
   });
 
   const history = await prisma.coachMessage.findMany({

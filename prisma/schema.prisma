@@ -16,6 +16,7 @@ model User {
   timezone        String   @default("UTC")
   instrument      String   @default("NQ")
   anthropicApiKey String?
+  traderProfile   String   @default("")
   role            String   @default("user") // "user" | "admin" | "creator"
   plan            String   @default("trial") // "trial" | "monthly" | "lifetime" | "expired"
   emailVerified   Boolean  @default(false)

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MarkdownMessage from "@/components/MarkdownMessage";
+import CoachQuestionnaire from "@/components/CoachQuestionnaire";
 
 type Msg = { id: string; role: string; content: string; imageUrl?: string | null; createdAt: string };
 
@@ -15,6 +16,8 @@ export default function CoachPage() {
   const [attachedImage, setAttachedImage] = useState("");
   const [uploading, setUploading] = useState(false);
   const [usage, setUsage] = useState<{ used: number; limit: number | null } | null>(null);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [mode, setMode] = useState<"chat" | "questionnaire">("chat");
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,6 +28,7 @@ export default function CoachPage() {
         setMessages(data.messages || []);
         setConfigured(data.configured);
         setUsage({ used: data.usedThisMonth ?? 0, limit: data.limit });
+        setHasProfile(Boolean(data.hasProfile));
       });
   }, []);
 
@@ -94,10 +98,34 @@ export default function CoachPage() {
     sendMessage(text || "Take a look at this chart.", text || undefined);
   }
 
-  function startQuestionnaire() {
+  async function finishQuestionnaire(answers: Record<string, string | string[]>) {
+    setMode("chat");
+    try {
+      await fetch("/api/coach/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers }),
+      });
+      setHasProfile(true);
+    } catch {
+      setError("Couldn't save your questionnaire answers — try again.");
+      return;
+    }
     sendMessage(
-      "I'd like to start the onboarding questionnaire so you can get to know me as a trader.",
-      "🧭 Start Questionnaire"
+      "I just finished the trader questionnaire — here's what I told you about myself. Give me a short, personalized welcome based on it.",
+      "🧭 Completed the questionnaire"
+    );
+  }
+
+  if (mode === "questionnaire") {
+    return (
+      <div className="flex flex-col h-screen">
+        <div className="p-6 border-b border-base-border">
+          <h1 className="text-xl font-semibold">🧭 Get to know you</h1>
+          <p className="text-sm text-base-muted mt-1">A few questions so your coach can tailor its feedback to you.</p>
+        </div>
+        <CoachQuestionnaire onComplete={finishQuestionnaire} onCancel={() => setMode("chat")} />
+      </div>
     );
   }
 
@@ -108,11 +136,16 @@ export default function CoachPage() {
           <h1 className="text-xl font-semibold">🧠 AI Coach</h1>
           <p className="text-sm text-base-muted mt-1">Personalized feedback based on your logged trades.</p>
         </div>
-        {usage && (
-          <span className="text-xs text-base-muted shrink-0">
-            {usage.limit === null ? "Unlimited messages" : `${usage.used}/${usage.limit} messages this month`}
-          </span>
-        )}
+        <div className="flex items-center gap-4 shrink-0">
+          <button onClick={() => setMode("questionnaire")} className="text-xs text-accent hover:underline">
+            🧭 {hasProfile ? "Retake questionnaire" : "Start questionnaire"}
+          </button>
+          {usage && (
+            <span className="text-xs text-base-muted">
+              {usage.limit === null ? "Unlimited messages" : `${usage.used}/${usage.limit} messages this month`}
+            </span>
+          )}
+        </div>
       </div>
 
       {!configured && (
@@ -123,18 +156,9 @@ export default function CoachPage() {
 
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {messages.length === 0 && (
-          <div className="space-y-3">
-            <p className="text-sm text-base-muted">
-              Ask something like "What's my biggest weakness right now?" or attach a chart screenshot for feedback.
-            </p>
-            <button
-              onClick={startQuestionnaire}
-              disabled={!configured || sending}
-              className="bg-brand-gradient text-white font-medium rounded-lg px-4 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-50"
-            >
-              🧭 Start Questionnaire
-            </button>
-          </div>
+          <p className="text-sm text-base-muted">
+            Ask something like "What's my biggest weakness right now?" or attach a chart screenshot for feedback.
+          </p>
         )}
         <AnimatePresence initial={false}>
           {messages.map((m) => (
