@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { addMonths, subMonths, format, isSameMonth, parseISO } from "date-fns";
 import CalendarGrid, { type DayStat } from "@/components/CalendarGrid";
-import PillBadge from "@/components/PillBadge";
 import { computeStreaks, toDayKey } from "@/lib/streak";
 import { parseRRMagnitude, formatNumber } from "@/lib/rr";
 import { formatMoney } from "@/lib/pnl";
@@ -54,12 +53,30 @@ export default function CalendarPage() {
     return Object.entries(statsByDay).reduce((sum, [key, stat]) => (isSameMonth(parseISO(key), month) ? sum + stat.pnl : sum), 0);
   }, [statsByDay, month]);
 
-  const selectedDayTrades = useMemo(() => {
-    if (!selectedDayKey) return [];
-    return trades.filter((t) => toDayKey(t.date) === selectedDayKey);
-  }, [trades, selectedDayKey]);
-
   const selectedDayStat = selectedDayKey ? statsByDay[selectedDayKey] : null;
+
+  let tileBg = "bg-base-panel";
+  let tileBorder = "border-base-border";
+  let tilePnlText = "text-pill-green-bg";
+  if (selectedDayStat) {
+    if (selectedDayStat.pnl > 0) {
+      tileBg = "bg-pill-green-bg/40";
+      tileBorder = "border-pill-green-bg/70";
+      tilePnlText = "text-pill-green-bg";
+    } else if (selectedDayStat.pnl < 0) {
+      tileBg = "bg-pill-red-bg/25";
+      tileBorder = "border-pill-red-bg/50";
+      tilePnlText = "text-pill-red-bg";
+    } else if (selectedDayStat.hasBreakeven) {
+      tileBg = "bg-pill-gold-bg/30";
+      tileBorder = "border-pill-gold-bg/60";
+      tilePnlText = "text-pill-gold-bg";
+    } else {
+      tileBg = "bg-pill-slate-bg/25";
+      tileBorder = "border-pill-slate-bg/50";
+      tilePnlText = "text-pill-green-bg";
+    }
+  }
 
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading calendar...</div>;
 
@@ -96,7 +113,7 @@ export default function CalendarPage() {
           initial={{ opacity: 0, y: 48, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: "spring", stiffness: 380, damping: 34 }}
-          className="fixed inset-0 z-50 bg-base-bg overflow-y-auto"
+          className="fixed inset-0 z-50 bg-base-bg overflow-y-auto flex flex-col"
         >
           <button
             onClick={() => setSelectedDayKey(null)}
@@ -105,52 +122,31 @@ export default function CalendarPage() {
             ← Back to calendar
           </button>
 
-          <div className="px-6 pt-6 pb-4 max-w-lg mx-auto">
-            <div className="text-xl font-semibold tracking-tight mb-4">
-              {format(parseISO(selectedDayKey), "EEEE, MMMM d, yyyy")}
+          <div className="flex-1 flex items-center justify-center px-6 py-8">
+            <div className={`relative w-full max-w-sm aspect-square rounded-2xl border-2 ${tileBorder} ${tileBg} p-6`}>
+              <span className="absolute top-5 right-6 text-4xl sm:text-5xl font-bold leading-none text-base-text">
+                {format(parseISO(selectedDayKey), "d")}
+              </span>
+              {selectedDayStat && (
+                <span className="absolute bottom-5 left-6 text-sm sm:text-base text-base-muted">
+                  {selectedDayStat.count} {selectedDayStat.count === 1 ? "trade" : "trades"}
+                </span>
+              )}
+              {selectedDayStat && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                  <span className={`text-5xl sm:text-6xl font-bold leading-tight ${tilePnlText}`}>
+                    {selectedDayStat.pnl < 0 ? "-" : ""}${formatMoney(selectedDayStat.pnl)}
+                  </span>
+                  {selectedDayStat.hasRR && (
+                    <span className="text-lg sm:text-xl text-base-muted leading-tight">{formatNumber(selectedDayStat.rrSum)} RR</span>
+                  )}
+                </div>
+              )}
             </div>
+          </div>
 
-            {selectedDayStat && (
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                <div className="glass-panel border border-base-border rounded-xl p-3 text-center">
-                  <div className="text-xs text-base-muted mb-1">Trades</div>
-                  <div className="text-lg font-semibold">{selectedDayStat.count}</div>
-                </div>
-                <div className="glass-panel border border-base-border rounded-xl p-3 text-center">
-                  <div className="text-xs text-base-muted mb-1">PnL</div>
-                  <div className={`text-lg font-semibold ${selectedDayStat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-                    {selectedDayStat.pnl < 0 ? "-" : "+"}${formatMoney(selectedDayStat.pnl)}
-                  </div>
-                </div>
-                <div className="glass-panel border border-base-border rounded-xl p-3 text-center">
-                  <div className="text-xs text-base-muted mb-1">RR</div>
-                  <div className="text-lg font-semibold">{selectedDayStat.hasRR ? formatNumber(selectedDayStat.rrSum) : "—"}</div>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              {selectedDayTrades.map((t) => (
-                <div key={t.id} className="glass-panel border border-base-border rounded-xl p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <PillBadge
-                      small
-                      label={t.result}
-                      color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : t.result === "Breakeven" ? "gold" : "slate"}
-                    />
-                    <span className="text-sm text-base-muted truncate">
-                      {t.direction} {t.instrument}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0 text-sm">
-                    <span className="text-base-muted">{t.rr?.trim() ? t.rr : "—"}</span>
-                    <span className={`font-semibold ${t.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-                      {t.pnl < 0 ? "-" : "+"}${formatMoney(t.pnl, 2)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="text-center text-sm text-base-muted pb-8 px-6">
+            {format(parseISO(selectedDayKey), "EEEE, MMMM d, yyyy")}
           </div>
         </motion.div>
       )}
