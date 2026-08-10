@@ -59,8 +59,7 @@ export default function CoachPage() {
     setUploading(false);
   }
 
-  async function send() {
-    const text = input.trim();
+  async function sendMessage(text: string, displayText?: string) {
     if ((!text && !attachedImage) || sending) return;
     setError("");
     setInput("");
@@ -68,14 +67,14 @@ export default function CoachPage() {
     setAttachedImage("");
     setMessages((m) => [
       ...m,
-      { id: `tmp-${Date.now()}`, role: "user", content: text || "(sent an image)", imageUrl, createdAt: new Date().toISOString() },
+      { id: `tmp-${Date.now()}`, role: "user", content: displayText ?? text, imageUrl, createdAt: new Date().toISOString() },
     ]);
     setSending(true);
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text || "Take a look at this chart.", imageUrl }),
+        body: JSON.stringify({ message: text, imageUrl }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -88,6 +87,18 @@ export default function CoachPage() {
       setError("Could not reach the coach.");
     }
     setSending(false);
+  }
+
+  function send() {
+    const text = input.trim();
+    sendMessage(text || "Take a look at this chart.", text || undefined);
+  }
+
+  function startQuestionnaire() {
+    sendMessage(
+      "I'd like to start the onboarding questionnaire so you can get to know me as a trader.",
+      "🧭 Start Questionnaire"
+    );
   }
 
   return (
@@ -112,9 +123,18 @@ export default function CoachPage() {
 
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {messages.length === 0 && (
-          <p className="text-sm text-base-muted">
-            Ask something like "What's my biggest weakness right now?" or attach a chart screenshot for feedback.
-          </p>
+          <div className="space-y-3">
+            <p className="text-sm text-base-muted">
+              Ask something like "What's my biggest weakness right now?" or attach a chart screenshot for feedback.
+            </p>
+            <button
+              onClick={startQuestionnaire}
+              disabled={!configured || sending}
+              className="bg-brand-gradient text-white font-medium rounded-lg px-4 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-50"
+            >
+              🧭 Start Questionnaire
+            </button>
+          </div>
         )}
         <AnimatePresence initial={false}>
           {messages.map((m) => (
