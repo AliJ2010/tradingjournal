@@ -23,6 +23,15 @@ body {
   box-sizing: border-box;
 }
 
+button,
+a,
+input,
+textarea,
+select,
+[role="button"] {
+  touch-action: manipulation;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
