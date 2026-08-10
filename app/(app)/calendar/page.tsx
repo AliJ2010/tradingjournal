@@ -4,40 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { addMonths, subMonths, format, isSameMonth, parseISO } from "date-fns";
 import CalendarGrid, { type DayStat } from "@/components/CalendarGrid";
-import TradeForm, { type TradeDraft } from "@/components/TradeForm";
+import PillBadge from "@/components/PillBadge";
 import { computeStreaks, toDayKey } from "@/lib/streak";
-import { parseRRMagnitude } from "@/lib/rr";
+import { parseRRMagnitude, formatNumber } from "@/lib/rr";
 import { formatMoney } from "@/lib/pnl";
-import { parseTags } from "@/lib/json";
 
-type Trade = { id: string; date: string; result: string; pnl: number; rr: string };
-
-function tradeToDraft(t: any): TradeDraft {
-  return {
-    id: t.id,
-    date: new Date(t.date).toISOString().slice(0, 10),
-    result: t.result,
-    direction: t.direction,
-    htfBias: t.htfBias,
-    instrument: t.instrument,
-    timeFrame: t.timeFrame,
-    entryTime: t.entryTime,
-    exitTime: t.exitTime,
-    riskPercent: t.riskPercent,
-    rulesFollowed: t.rulesFollowed,
-    rr: t.rr,
-    pnl: t.pnl,
-    drawDirectionTags: parseTags(t.drawDirectionTags),
-    setupTags: parseTags(t.setupTags),
-    emotionTags: parseTags(t.emotionTags),
-    newsTags: parseTags(t.newsTags),
-    whatOthersDid: t.whatOthersDid,
-    notes: t.notes,
-    whatWouldYouDo: t.whatWouldYouDo,
-    chartImageUrl: t.chartImageUrl,
-    hiddenFields: parseTags(t.hiddenFields),
-  };
-}
+type Trade = { id: string; date: string; result: string; direction: string; instrument: string; pnl: number; rr: string };
 
 export default function CalendarPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -87,6 +59,8 @@ export default function CalendarPage() {
     return trades.filter((t) => toDayKey(t.date) === selectedDayKey);
   }, [trades, selectedDayKey]);
 
+  const selectedDayStat = selectedDayKey ? statsByDay[selectedDayKey] : null;
+
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading calendar...</div>;
 
   return (
@@ -130,11 +104,54 @@ export default function CalendarPage() {
           >
             ← Back to calendar
           </button>
-          {selectedDayTrades.map((t) => (
-            <div key={t.id} className="border-b border-base-border">
-              <TradeForm initial={tradeToDraft(t)} readOnly />
+
+          <div className="px-6 pt-6 pb-4 max-w-lg mx-auto">
+            <div className="text-xl font-semibold tracking-tight mb-4">
+              {format(parseISO(selectedDayKey), "EEEE, MMMM d, yyyy")}
             </div>
-          ))}
+
+            {selectedDayStat && (
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="glass-panel border border-base-border rounded-xl p-3 text-center">
+                  <div className="text-xs text-base-muted mb-1">Trades</div>
+                  <div className="text-lg font-semibold">{selectedDayStat.count}</div>
+                </div>
+                <div className="glass-panel border border-base-border rounded-xl p-3 text-center">
+                  <div className="text-xs text-base-muted mb-1">PnL</div>
+                  <div className={`text-lg font-semibold ${selectedDayStat.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
+                    {selectedDayStat.pnl < 0 ? "-" : "+"}${formatMoney(selectedDayStat.pnl)}
+                  </div>
+                </div>
+                <div className="glass-panel border border-base-border rounded-xl p-3 text-center">
+                  <div className="text-xs text-base-muted mb-1">RR</div>
+                  <div className="text-lg font-semibold">{selectedDayStat.hasRR ? formatNumber(selectedDayStat.rrSum) : "—"}</div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {selectedDayTrades.map((t) => (
+                <div key={t.id} className="glass-panel border border-base-border rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <PillBadge
+                      small
+                      label={t.result}
+                      color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : t.result === "Breakeven" ? "gold" : "slate"}
+                    />
+                    <span className="text-sm text-base-muted truncate">
+                      {t.direction} {t.instrument}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 text-sm">
+                    <span className="text-base-muted">{t.rr?.trim() ? t.rr : "—"}</span>
+                    <span className={`font-semibold ${t.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
+                      {t.pnl < 0 ? "-" : "+"}${formatMoney(t.pnl, 2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </motion.div>
       )}
     </div>
