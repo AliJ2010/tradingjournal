@@ -390,11 +390,18 @@ function ImproveVisual() {
         {(days ?? Array(28).fill(null)).map((d, i) => (
           <div
             key={i}
-            className={`aspect-square rounded-sm ${
-              d === null ? "bg-base-panel2/50" : d === 0 ? "bg-pill-gold-bg/70" : d > 0 ? "bg-pill-green-bg/70" : "bg-pill-red-bg/60"
+            className={`aspect-square rounded-sm flex items-center justify-center text-[9px] sm:text-[10px] font-semibold ${
+              d === null
+                ? "bg-base-panel2/50"
+                : d === 0
+                ? "bg-pill-gold-bg/80 text-base-bg"
+                : d > 0
+                ? "bg-pill-green-bg/80 text-base-bg"
+                : "bg-pill-red-bg/80 text-base-bg"
             }`}
-            style={d !== null && d !== 0 ? { opacity: 0.4 + Math.min(Math.abs(d), 25) / 40 } : undefined}
-          />
+          >
+            {d !== null && (d === 0 ? "BE" : `${d > 0 ? "+" : "-"}${Math.round(Math.abs(d))}`)}
+          </div>
         ))}
       </div>
     </BrowserFrame>
