@@ -167,6 +167,80 @@ function TagInput({
   );
 }
 
+function QuickPickTextInput({
+  value,
+  onChange,
+  savedOptions,
+  onSaveOption,
+  onRemoveSavedOption,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  savedOptions: string[];
+  onSaveOption: (v: string) => void;
+  onRemoveSavedOption: (v: string) => void;
+}) {
+  const [remember, setRemember] = useState(false);
+  const quickPicks = savedOptions.filter((s) => s !== value);
+
+  function commit() {
+    const clean = value.trim();
+    if (remember && clean) onSaveOption(clean);
+    setRemember(false);
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={commit}
+          placeholder="Empty"
+          className="bg-transparent text-sm w-full placeholder:text-base-muted/60 py-1"
+        />
+        {value && (
+          <button
+            type="button"
+            title="Save as a quick-pick option for next time"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setRemember((r) => !r)}
+            className={`text-xs px-1.5 py-1 rounded-md transition-colors shrink-0 ${
+              remember ? "text-accent bg-accent/15" : "text-base-muted hover:text-base-text"
+            }`}
+          >
+            {remember ? "★ Save" : "☆ Save"}
+          </button>
+        )}
+      </div>
+      {quickPicks.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {quickPicks.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => onChange(s)}
+              className="group flex items-center gap-1 text-xs border border-dashed border-base-border rounded-full px-2.5 py-1 text-base-muted hover:text-base-text hover:border-accent/50 transition-colors"
+            >
+              {s}
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveSavedOption(s);
+                }}
+                className="opacity-0 group-hover:opacity-100 hover:text-pill-red-bg ml-0.5"
+              >
+                ×
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SelectPills({
   field,
   value,
@@ -393,6 +467,14 @@ export default function TradeForm({
                     ) : (
                       <span className="text-base-muted text-sm">—</span>
                     )
+                  ) : field.key === "instrument" || field.key === "timeFrame" ? (
+                    <QuickPickTextInput
+                      value={(draft as any)[field.key]}
+                      onChange={(v) => set(field.key as any, v as any)}
+                      savedOptions={savedTags[field.key] || []}
+                      onSaveOption={(v) => saveTagOption(field.key, v)}
+                      onRemoveSavedOption={(v) => removeSavedTagOption(field.key, v)}
+                    />
                   ) : (
                     <input
                       type="text"

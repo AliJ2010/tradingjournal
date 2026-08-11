@@ -7,6 +7,7 @@ import DownloadPnlCardButton from "@/components/DownloadPnlCardButton";
 import { parseTags } from "@/lib/json";
 import { formatMoney } from "@/lib/pnl";
 import { useCountUp } from "@/lib/useCountUp";
+import { exportTradesPdf } from "@/lib/exportPdf";
 
 type Trade = {
   id: string;
@@ -110,7 +111,22 @@ export default function DashboardPage() {
     <div className="p-4 sm:p-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <DownloadPnlCardButton trades={trades} username={username} />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() =>
+              exportTradesPdf(trades, {
+                title: "OpticTrader — Dashboard Report",
+                subtitleExtra: `Win rate ${stats.winRate.toFixed(1)}% · Total PnL ${stats.totalPnl < 0 ? "-" : "+"}$${formatMoney(stats.totalPnl, 2)}`,
+                filename: `optictrader-dashboard-${new Date().toISOString().slice(0, 10)}.pdf`,
+              })
+            }
+            className="flex items-center gap-1.5 text-sm text-base-muted hover:text-base-text border border-base-border rounded-lg px-3 py-1.5 transition-colors"
+            title="Export dashboard as PDF"
+          >
+            ⬇ PDF
+          </button>
+          <DownloadPnlCardButton trades={trades} username={username} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

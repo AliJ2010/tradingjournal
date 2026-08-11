@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
-import { Tag, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { formatMoney } from "@/lib/pnl";
 
 export type PnlCardData = {
@@ -17,8 +17,8 @@ const PnlCard = forwardRef<
   HTMLDivElement,
   PnlCardData & { code: string; locked: boolean; onCodeChange: (v: string) => void }
 >(function PnlCard({ dateLabel, pnl, trades, rrLabel, winRate, username, code, locked, onCodeChange }, ref) {
-  const pnlColor = pnl < 0 ? "#e05d6f" : "#10b981";
-  const pnlGlow = pnl < 0 ? "rgba(224,93,111,0.5)" : "rgba(16,185,129,0.5)";
+  const pnlColor = pnl < 0 ? "#ff6b7f" : "#3df2a8";
+  const pnlGlow = pnl < 0 ? "rgba(255,107,127,0.65)" : "rgba(61,242,168,0.7)";
 
   return (
     <div
@@ -34,15 +34,15 @@ const PnlCard = forwardRef<
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
-        <div style={{ fontSize: 14, color: "#a3a6c4" }}>{dateLabel}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+        <div style={{ fontSize: 14, color: "#a3a6c4", whiteSpace: "nowrap" }}>{dateLabel}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, marginLeft: "auto", flexShrink: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/optictrader-logo-small.png"
             alt="OpticTrader"
-            style={{ width: 26, height: 26, objectFit: "contain", borderRadius: 6 }}
+            style={{ width: 26, height: 26, objectFit: "contain", borderRadius: 6, flexShrink: 0, display: "block" }}
           />
-          <span style={{ fontSize: 16, fontWeight: 500, color: "#f8f9fc" }}>OpticTrader</span>
+          <span style={{ fontSize: 16, fontWeight: 500, color: "#f8f9fc", whiteSpace: "nowrap", lineHeight: 1 }}>OpticTrader</span>
         </div>
       </div>
 
@@ -50,20 +50,20 @@ const PnlCard = forwardRef<
       <div
         style={{
           fontSize: 64,
-          fontWeight: 600,
+          fontWeight: 700,
           color: pnlColor,
           lineHeight: 1,
           marginBottom: 26,
-          textShadow: `0 0 36px ${pnlGlow}`,
+          textShadow: `0 0 28px ${pnlGlow}, 0 0 56px ${pnlGlow}`,
         }}
       >
         {pnl < 0 ? "-" : "+"}${formatMoney(pnl, 0)}
       </div>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-        <StatBox label="Trades" value={String(trades)} />
+        <StatBox label="Trades" value={`${trades} ${trades === 1 ? "Trade" : "Trades"}`} />
         <StatBox label="RR" value={rrLabel} />
-        <StatBox label="Win rate" value={trades > 0 ? `${Math.round(winRate)}%` : "—"} color={trades > 0 ? "#10b981" : undefined} />
+        <StatBox label="Win rate" value={trades > 0 ? `${Math.round(winRate)}%` : "—"} color={trades > 0 ? "#3df2a8" : undefined} />
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
@@ -79,7 +79,7 @@ const PnlCard = forwardRef<
             boxShadow: "0 0 0 1px rgba(95,94,245,0.12), 0 4px 14px -2px rgba(0,0,0,0.4)",
           }}
         >
-          {locked ? <Lock size={14} color="#f5b942" /> : <Tag size={14} color="#7f77dd" />}
+          <Lock size={14} color={locked ? "#f5b942" : "#7f77dd"} fill={locked ? "#f5b942" : "none"} />
           <input
             value={code}
             disabled={locked}

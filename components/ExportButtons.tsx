@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { parseTags } from "@/lib/json";
+import { exportTradesPdf } from "@/lib/exportPdf";
 
 function escapeCsv(v: unknown) {
   const s = String(v ?? "");
@@ -65,29 +64,10 @@ export default function ExportButtons() {
     setLoading("pdf");
     try {
       const trades = await getTrades();
-      const doc = new jsPDF();
-      doc.setFontSize(16);
-      doc.text("OpticTrader — Trading Journal", 14, 16);
-      doc.setFontSize(10);
-      doc.setTextColor(120);
-      doc.text(`Exported ${new Date().toLocaleDateString()} · ${trades.length} trades`, 14, 22);
-
-      autoTable(doc, {
-        startY: 28,
-        head: [["Date", "Result", "Dir", "PnL", "Setups", "Notes"]],
-        body: trades.map((t: any) => [
-          new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" }),
-          t.result,
-          t.direction,
-          `$${t.pnl.toFixed(2)}`,
-          parseTags(t.setupTags).join(", "),
-          (t.notes || "").slice(0, 80),
-        ]),
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [124, 92, 255] },
+      exportTradesPdf(trades, {
+        title: "OpticTrader — Trading Journal",
+        filename: `optictrader-journal-${new Date().toISOString().slice(0, 10)}.pdf`,
       });
-
-      doc.save(`optictrader-journal-${new Date().toISOString().slice(0, 10)}.pdf`);
     } finally {
       setLoading(null);
     }
