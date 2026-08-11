@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { StatCard } from "@/components/StatCards";
+import DownloadPnlCardButton from "@/components/DownloadPnlCardButton";
 import { parseTags } from "@/lib/json";
 import { formatMoney } from "@/lib/pnl";
 import { useCountUp } from "@/lib/useCountUp";
@@ -24,12 +25,16 @@ type Trade = {
 export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     fetch("/api/trades")
       .then((r) => r.json())
       .then(setTrades)
       .finally(() => setLoading(false));
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => data.username && setUsername(data.username));
   }, []);
 
   const stats = useMemo(() => {
@@ -103,7 +108,10 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Dashboard</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <DownloadPnlCardButton trades={trades} username={username} />
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Win rate" value={`${winRateCount.toFixed(1)}%`} tone="accent" />

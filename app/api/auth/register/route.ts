@@ -65,6 +65,13 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const admin = await prisma.user.findUnique({ where: { username: "alloushii" } });
+  if (admin && admin.id !== user.id) {
+    await prisma.friendLink
+      .create({ data: { requesterId: admin.id, receiverId: user.id, status: "accepted" } })
+      .catch(() => {});
+  }
+
   const code = generateCode();
   await prisma.emailVerificationCode.create({
     data: { userId: user.id, code, expiresAt: new Date(Date.now() + 15 * 60 * 1000) },

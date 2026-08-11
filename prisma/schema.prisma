@@ -31,6 +31,7 @@ model User {
   receivedRequests FriendLink[]   @relation("Receiver")
   creatorCode      CreatorCode?
   referral         Referral?
+  savedTagOptions  SavedTagOption[]
 }
 
 model SupportMessage {
@@ -122,6 +123,18 @@ model FriendLink {
   receiver  User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@unique([requesterId, receiverId])
+}
+
+model SavedTagOption {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  field     String
+  value     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, field, value])
+  @@index([userId, field])
 }
 
 model CoachMessage {

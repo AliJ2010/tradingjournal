@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { addMonths, subMonths, format, isSameMonth, parseISO } from "date-fns";
 import CalendarGrid, { type DayStat } from "@/components/CalendarGrid";
+import DownloadPnlCardButton from "@/components/DownloadPnlCardButton";
 import { computeStreaks, toDayKey } from "@/lib/streak";
 import { parseRRMagnitude, formatNumber } from "@/lib/rr";
 import { formatMoney } from "@/lib/pnl";
@@ -15,12 +16,16 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     fetch("/api/trades")
       .then((r) => r.json())
       .then((data) => setTrades(data))
       .finally(() => setLoading(false));
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => data.username && setUsername(data.username));
   }, []);
 
   const statsByDay = useMemo(() => {
@@ -82,7 +87,10 @@ export default function CalendarPage() {
 
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">PnL Calendar</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold">PnL Calendar</h1>
+        <DownloadPnlCardButton trades={trades} username={username} />
+      </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         <StreakCard label="Current streak" value={current} suffix="days" highlight />

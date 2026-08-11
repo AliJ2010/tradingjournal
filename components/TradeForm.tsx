@@ -66,42 +66,95 @@ function TagInput({
   suggestions,
   disabled,
   colorFn = colorForTag,
+  savedOptions = [],
+  onSaveOption,
+  onRemoveSavedOption,
 }: {
   values: string[];
   onChange: (v: string[]) => void;
   suggestions: string[];
   disabled?: boolean;
   colorFn?: (tag: string) => ReturnType<typeof colorForTag>;
+  savedOptions?: string[];
+  onSaveOption?: (value: string) => void;
+  onRemoveSavedOption?: (value: string) => void;
 }) {
   const [input, setInput] = useState("");
+  const [remember, setRemember] = useState(false);
 
   function addTag(tag: string) {
     const clean = tag.trim();
     if (!clean || values.includes(clean)) return;
     onChange([...values, clean]);
+    if (remember && onSaveOption) onSaveOption(clean);
     setInput("");
+    setRemember(false);
   }
 
+  const quickPicks = savedOptions.filter((s) => !values.includes(s));
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {values.map((v) => (
-        <PillBadge key={v} label={v} color={colorFn(v)} onRemove={disabled ? undefined : () => onChange(values.filter((x) => x !== v))} />
-      ))}
-      {!disabled && (
-        <input
-          list={suggestions.length > 0 ? `suggestions-${suggestions.join("-").slice(0, 20)}` : undefined}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              addTag(input);
-            }
-          }}
-          onBlur={() => input && addTag(input)}
-          placeholder="+ Add"
-          className="bg-transparent text-sm text-base-muted placeholder:text-base-muted/60 w-24 px-1 py-1"
-        />
+    <div className="space-y-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {values.map((v) => (
+          <PillBadge key={v} label={v} color={colorFn(v)} onRemove={disabled ? undefined : () => onChange(values.filter((x) => x !== v))} />
+        ))}
+        {!disabled && (
+          <>
+            <input
+              list={suggestions.length > 0 ? `suggestions-${suggestions.join("-").slice(0, 20)}` : undefined}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addTag(input);
+                }
+              }}
+              onBlur={() => input && addTag(input)}
+              placeholder="+ Add"
+              className="bg-transparent text-sm text-base-muted placeholder:text-base-muted/60 w-24 px-1 py-1"
+            />
+            {input && onSaveOption && (
+              <button
+                type="button"
+                title={remember ? "Will save as a quick-pick option for next time" : "Save as a quick-pick option for next time"}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setRemember((r) => !r)}
+                className={`text-xs px-1.5 py-1 rounded-md transition-colors ${
+                  remember ? "text-accent bg-accent/15" : "text-base-muted hover:text-base-text"
+                }`}
+              >
+                {remember ? "★ Save" : "☆ Save"}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+      {!disabled && quickPicks.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {quickPicks.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => addTag(s)}
+              className="group flex items-center gap-1 text-xs border border-dashed border-base-border rounded-full px-2.5 py-1 text-base-muted hover:text-base-text hover:border-accent/50 transition-colors"
+            >
+              {s}
+              {onRemoveSavedOption && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveSavedOption(s);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 hover:text-pill-red-bg ml-0.5"
+                >
+                  ×
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       )}
       {suggestions.length > 0 && (
         <datalist id={`suggestions-${suggestions.join("-").slice(0, 20)}`}>
@@ -165,8 +218,27 @@ export default function TradeForm({
   const [dateError, setDateError] = useState("");
   const [saveButtonVisible, setSaveButtonVisible] = useState(true);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const [savedTags, setSavedTags] = useState<Record<string, string[]>>({});
 
   useEffect(() => setDraft(initial), [initial]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    fetch("/api/saved-tags")
+      .then((r) => r.json())
+      .then((data) => setSavedTags(data || {}))
+      .catch(() => {});
+  }, [readOnly]);
+
+  function saveTagOption(field: string, value: string) {
+    setSavedTags((s) => ({ ...s, [field]: [...(s[field] || []), value] }));
+    fetch("/api/saved-tags", { method: "POST", body: JSON.stringify({ field, value }) }).catch(() => {});
+  }
+
+  function removeSavedTagOption(field: string, value: string) {
+    setSavedTags((s) => ({ ...s, [field]: (s[field] || []).filter((v) => v !== value) }));
+    fetch("/api/saved-tags", { method: "DELETE", body: JSON.stringify({ field, value }) }).catch(() => {});
+  }
 
   useEffect(() => {
     if (readOnly || !onSave || !saveButtonRef.current) return;
@@ -304,6 +376,9 @@ export default function TradeForm({
                     suggestions={field.key === "emotionTags" ? EMOTION_TAG_SUGGESTIONS : []}
                     disabled={readOnly}
                     colorFn={field.key === "emotionTags" ? colorForEmotion : colorForTag}
+                    savedOptions={savedTags[field.key] || []}
+                    onSaveOption={readOnly ? undefined : (v) => saveTagOption(field.key, v)}
+                    onRemoveSavedOption={readOnly ? undefined : (v) => removeSavedTagOption(field.key, v)}
                   />
                 )}
 
