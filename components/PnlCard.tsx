@@ -85,8 +85,8 @@ const PnlCard = forwardRef<
             disabled={locked}
             onChange={(e) => onCodeChange(e.target.value)}
             placeholder="Discount code"
+            size={code ? Math.max(code.length + 1, 6) : 13}
             style={{
-              width: 100,
               background: "transparent",
               border: "none",
               outline: "none",
@@ -94,7 +94,7 @@ const PnlCard = forwardRef<
               fontWeight: 500,
               letterSpacing: "0.03em",
               color: locked ? "#a3a6c4" : "#f8f9fc",
-              textAlign: "left",
+              textAlign: "center",
             }}
           />
         </div>

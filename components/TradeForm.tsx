@@ -198,7 +198,7 @@ function QuickPickTextInput({
           onChange={(e) => onChange(e.target.value)}
           onBlur={commit}
           placeholder="Empty"
-          className="bg-transparent text-sm w-full placeholder:text-base-muted/60 py-1"
+          className="bg-transparent text-sm w-32 placeholder:text-base-muted/60 py-1"
         />
         {value && (
           <button
