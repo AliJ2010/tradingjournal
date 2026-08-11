@@ -5,15 +5,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Download, X } from "lucide-react";
 import PnlCard from "./PnlCard";
 import { toDayKey } from "@/lib/streak";
-import { parseRRMagnitude } from "@/lib/rr";
+import { effectiveRR } from "@/lib/rr";
 
 type Trade = { date: string; pnl: number; result: string; rr: string };
 
 export default function DownloadPnlCardButton({ trades, username }: { trades: Trade[]; username: string }) {
   const [open, setOpen] = useState(false);
-  const [code, setCode] = useState("");
-  const [locked, setLocked] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   const [error, setError] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -23,8 +22,8 @@ export default function DownloadPnlCardButton({ trades, username }: { trades: Tr
     const pnl = dayTrades.reduce((sum, t) => sum + t.pnl, 0);
     const wins = dayTrades.filter((t) => t.result === "Win" || t.result === "Breakeven").length;
     const winRate = dayTrades.length > 0 ? (wins / dayTrades.length) * 100 : 0;
-    const rrMags = dayTrades.map((t) => parseRRMagnitude(t.rr)).filter((v): v is number => v !== null);
-    const rrLabel = rrMags.length === 0 ? "—" : (rrMags.reduce((a, b) => a + b, 0) / rrMags.length).toFixed(1);
+    const rrValues = dayTrades.map((t) => effectiveRR(t.rr, t.result)).filter((v): v is number => v !== null);
+    const rrLabel = rrValues.length === 0 ? "—" : (rrValues.reduce((a, b) => a + b, 0) / rrValues.length).toFixed(1);
     const dateLabel = new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
     return { pnl, trades: dayTrades.length, winRate, rrLabel, dateLabel };
   }, [trades]);
@@ -41,7 +40,8 @@ export default function DownloadPnlCardButton({ trades, username }: { trades: Tr
       link.download = `optictrader-pnl-${toDayKey(new Date())}.png`;
       link.href = dataUrl;
       link.click();
-      setLocked(true);
+      setDownloaded(true);
+      setTimeout(() => setDownloaded(false), 2500);
     } catch (err) {
       console.error("PnL card export failed", err);
       setError("Couldn't generate the image — try again.");
@@ -52,8 +52,6 @@ export default function DownloadPnlCardButton({ trades, username }: { trades: Tr
 
   function handleClose() {
     setOpen(false);
-    setLocked(false);
-    setCode("");
     setError("");
   }
 
@@ -100,22 +98,16 @@ export default function DownloadPnlCardButton({ trades, username }: { trades: Tr
                 rrLabel={today.rrLabel}
                 winRate={today.winRate}
                 username={username}
-                code={code}
-                locked={locked}
-                onCodeChange={setCode}
               />
 
               <div className="text-center mt-5">
                 <button
                   onClick={handleDownload}
-                  disabled={downloading || locked}
+                  disabled={downloading}
                   className="bg-brand-gradient text-white font-semibold rounded-lg px-6 py-2.5 text-sm shadow-glow hover:brightness-110 transition-all disabled:opacity-60"
                 >
-                  {downloading ? "Generating..." : locked ? "Downloaded" : "Download card"}
+                  {downloading ? "Generating..." : downloaded ? "Downloaded!" : "Download card"}
                 </button>
-                {locked && (
-                  <div className="text-xs text-base-muted mt-2">Code locked in this card — can&apos;t be edited or swapped afterward.</div>
-                )}
                 {error && <div className="text-xs text-pill-red-bg mt-2">{error}</div>}
               </div>
             </motion.div>

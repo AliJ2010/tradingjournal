@@ -69,6 +69,7 @@ export default function JournalPage() {
       }
       setLoading(false);
     });
+    fetch("/api/reactions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markSeen" }) }).catch(() => {});
   }, [loadTrades]);
 
   useEffect(() => {

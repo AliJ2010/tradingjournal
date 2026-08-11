@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Heart } from "lucide-react";
 import TradeForm, { type TradeDraft } from "@/components/TradeForm";
 import PillBadge from "@/components/PillBadge";
 import { parseTags } from "@/lib/json";
+import { toDayKey } from "@/lib/streak";
 
 type FriendLink = {
   id: string;
@@ -12,6 +14,8 @@ type FriendLink = {
   direction: "incoming" | "outgoing";
   friend: { id: string; username: string; displayName: string };
 };
+
+type Reaction = { count: number; reactedByMe: boolean };
 
 function tradeToDraft(t: any): TradeDraft {
   return {
@@ -49,6 +53,7 @@ export default function FriendsPage() {
   const [friendTrades, setFriendTrades] = useState<any[]>([]);
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, Reaction>>({});
 
   async function loadLinks() {
     const res = await fetch("/api/friends");
@@ -105,13 +110,45 @@ export default function FriendsPage() {
   async function viewFriend(friend: { id: string; displayName: string }) {
     setViewingFriend(friend);
     setSelectedTradeId(null);
-    const res = await fetch(`/api/friends/${friend.id}`);
-    const data = await res.json();
-    if (res.ok) {
+    const [tradesRes, reactionsRes] = await Promise.all([
+      fetch(`/api/friends/${friend.id}`),
+      fetch(`/api/reactions?friendId=${friend.id}`),
+    ]);
+    const data = await tradesRes.json();
+    if (tradesRes.ok) {
       setFriendTrades(data.trades);
       if (data.trades.length > 0) setSelectedTradeId(data.trades[0].id);
     }
+    if (reactionsRes.ok) setReactions(await reactionsRes.json());
   }
+
+  async function toggleHeart(dateKey: string) {
+    if (!viewingFriend) return;
+    const friendId = viewingFriend.id;
+    setReactions((r) => {
+      const cur = r[dateKey] || { count: 0, reactedByMe: false };
+      return { ...r, [dateKey]: { count: cur.reactedByMe ? Math.max(0, cur.count - 1) : cur.count + 1, reactedByMe: !cur.reactedByMe } };
+    });
+    await fetch("/api/reactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "toggle", toUserId: friendId, dateKey }),
+    }).catch(() => {});
+  }
+
+  const groupedDays = useMemo(() => {
+    const order: string[] = [];
+    const map: Record<string, any[]> = {};
+    for (const t of friendTrades) {
+      const key = toDayKey(t.date);
+      if (!map[key]) {
+        map[key] = [];
+        order.push(key);
+      }
+      map[key].push(t);
+    }
+    return order.map((key) => ({ key, trades: map[key] }));
+  }, [friendTrades]);
 
   const selectedDraft = useMemo(() => {
     const t = friendTrades.find((t) => t.id === selectedTradeId);
@@ -136,30 +173,57 @@ export default function FriendsPage() {
             <p className="text-xs text-base-muted mt-1">Fields they've marked private are hidden.</p>
           </div>
           <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
-            {friendTrades.length === 0 && <p className="px-3 text-sm text-base-muted">No entries yet.</p>}
-            {friendTrades.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => {
-                  setSelectedTradeId(t.id);
-                  setMobileDetailOpen(true);
-                }}
-                className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
-                  selectedTradeId === t.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">{t.date ? new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
-                  {t.result && (
-                    <PillBadge
-                      small
-                      label={t.result}
-                      color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : t.result === "Breakeven" ? "gold" : "slate"}
-                    />
-                  )}
+            {groupedDays.length === 0 && <p className="px-3 text-sm text-base-muted">No entries yet.</p>}
+            {groupedDays.map(({ key, trades: dayTrades }) => {
+              const first = dayTrades[0];
+              const reaction = reactions[key] || { count: 0, reactedByMe: false };
+              const isSelected = dayTrades.some((t) => t.id === selectedTradeId);
+              return (
+                <div
+                  key={key}
+                  className={`rounded-lg transition-colors flex items-center gap-1 ${isSelected ? "bg-base-panel2" : "hover:bg-base-panel2/60"}`}
+                >
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      setSelectedTradeId(first.id);
+                      setMobileDetailOpen(true);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        setSelectedTradeId(first.id);
+                        setMobileDetailOpen(true);
+                      }
+                    }}
+                    className="flex-1 min-w-0 text-left px-3 py-2.5 cursor-pointer flex items-center justify-between gap-2"
+                  >
+                    <span className="text-sm">{first.date ? new Date(first.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
+                    {dayTrades.length > 1 ? (
+                      <PillBadge small label={`${dayTrades.length} trades`} color="blue" />
+                    ) : (
+                      first.result && (
+                        <PillBadge
+                          small
+                          label={first.result}
+                          color={first.result === "Win" ? "green" : first.result === "Loss" ? "red" : first.result === "Breakeven" ? "gold" : "slate"}
+                        />
+                      )
+                    )}
+                  </div>
+                  <button
+                    onClick={() => toggleHeart(key)}
+                    title={reaction.reactedByMe ? "Un-heart this day" : "Heart this day"}
+                    className={`shrink-0 flex items-center gap-1 pr-3 pl-1.5 py-2.5 transition-colors ${
+                      reaction.reactedByMe ? "text-pill-red-bg" : "text-base-muted hover:text-pill-red-bg"
+                    }`}
+                  >
+                    <Heart size={15} fill={reaction.reactedByMe ? "currentColor" : "none"} />
+                    {reaction.count > 0 && <span className="text-xs">{reaction.count}</span>}
+                  </button>
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
         <div className={`${mobileDetailOpen ? "flex" : "hidden"} md:flex flex-1 overflow-y-auto flex-col`}>

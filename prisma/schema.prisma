@@ -32,6 +32,22 @@ model User {
   creatorCode      CreatorCode?
   referral         Referral?
   savedTagOptions  SavedTagOption[]
+  reactionsGiven    JournalReaction[] @relation("ReactionFrom")
+  reactionsReceived JournalReaction[] @relation("ReactionTo")
+}
+
+model JournalReaction {
+  id         String   @id @default(cuid())
+  fromUserId String
+  from       User     @relation("ReactionFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  to         User     @relation("ReactionTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  dateKey    String
+  seen       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([fromUserId, toUserId, dateKey])
+  @@index([toUserId, seen])
 }
 
 model SupportMessage {

@@ -6,7 +6,7 @@ import { addMonths, subMonths, format, isSameMonth, parseISO } from "date-fns";
 import CalendarGrid, { type DayStat } from "@/components/CalendarGrid";
 import DownloadPnlCardButton from "@/components/DownloadPnlCardButton";
 import { computeStreaks, toDayKey } from "@/lib/streak";
-import { parseRRMagnitude, formatNumber } from "@/lib/rr";
+import { effectiveRR, formatNumber } from "@/lib/rr";
 import { formatMoney } from "@/lib/pnl";
 
 type Trade = { id: string; date: string; result: string; direction: string; instrument: string; pnl: number; rr: string };
@@ -39,12 +39,10 @@ export default function CalendarPage() {
       if (countsAsWin) map[key].wins += 1;
       if (t.result === "Loss") map[key].losses += 1;
       if (t.result === "Breakeven") map[key].hasBreakeven = true;
-      if (t.rr && t.rr.trim()) {
-        const mag = parseRRMagnitude(t.rr);
-        if (mag !== null) {
-          map[key].rrSum += t.result === "Loss" ? -mag : countsAsWin ? mag : 0;
-          map[key].hasRR = true;
-        }
+      const eff = effectiveRR(t.rr, t.result);
+      if (eff !== null) {
+        map[key].rrSum += eff;
+        map[key].hasRR = true;
       }
     }
     return map;

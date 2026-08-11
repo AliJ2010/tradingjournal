@@ -20,6 +20,7 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [unseenReactions, setUnseenReactions] = useState(0);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -33,6 +34,10 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
           setPendingRequests(links.filter((l) => l.status === "pending" && l.direction === "incoming").length);
         }
       })
+      .catch(() => {});
+    fetch("/api/reactions")
+      .then((r) => r.json())
+      .then((data) => setUnseenReactions(data.unseenCount || 0))
       .catch(() => {});
   }, [pathname]);
 
@@ -70,6 +75,11 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
               {item.href === "/friends" && pendingRequests > 0 && (
                 <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-pill-red-bg text-white text-[11px] font-semibold leading-none">
                   {pendingRequests}
+                </span>
+              )}
+              {item.href === "/journal" && unseenReactions > 0 && (
+                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-pill-red-bg text-white text-[11px] font-semibold leading-none">
+                  {unseenReactions}
                 </span>
               )}
             </motion.div>
