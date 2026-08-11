@@ -376,10 +376,10 @@ function ImproveVisual() {
     setDays(
       Array.from({ length: 28 }, () => {
         const r = Math.random();
-        if (r < 0.15) return null; // no trade logged that day
-        if (r < 0.28) return 0; // breakeven
-        const magnitude = 4 + Math.random() * 26;
-        return r < 0.64 ? magnitude : -magnitude;
+        if (r < 0.1) return null; // no trade logged that day
+        if (r < 0.3) return 0; // breakeven
+        const magnitude = Math.round((500 + Math.random() * 1500) / 10) * 10;
+        return r < 0.72 ? magnitude : -magnitude; // more wins than losses
       })
     );
   }, []);
