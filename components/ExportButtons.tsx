@@ -38,7 +38,7 @@ export default function ExportButtons() {
         "Risk ($)", "RR", "PnL", "Setup Tags", "Emotion Tags", "Rules Followed", "Notes",
       ];
       const rows = trades.map((t: any) => [
-        new Date(t.date).toLocaleDateString(),
+        new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" }),
         t.result,
         t.direction,
         t.instrument,
@@ -76,7 +76,7 @@ export default function ExportButtons() {
         startY: 28,
         head: [["Date", "Result", "Dir", "PnL", "Setups", "Notes"]],
         body: trades.map((t: any) => [
-          new Date(t.date).toLocaleDateString(),
+          new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" }),
           t.result,
           t.direction,
           `$${t.pnl.toFixed(2)}`,

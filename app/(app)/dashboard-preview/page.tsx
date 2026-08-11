@@ -72,7 +72,7 @@ export default function DashboardPreviewPage() {
     let cumulative = 0;
     const equityCurve = sorted.map((t, i) => {
       cumulative += t.pnl;
-      return { index: i + 1, equity: Number(cumulative.toFixed(2)), date: new Date(t.date).toLocaleDateString() };
+      return { index: i + 1, equity: Number(cumulative.toFixed(2)), date: new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" }) };
     });
 
     const setupCounts: Record<string, number> = {};
@@ -290,7 +290,7 @@ export default function DashboardPreviewPage() {
               <tbody>
                 {stats.tradeLog.map((t) => (
                   <tr key={t.id} className="border-b border-base-border/50 last:border-0 hover:bg-base-panel2/50 transition-colors">
-                    <td className="py-2.5 px-2 text-base-muted">{new Date(t.date).toLocaleDateString()}</td>
+                    <td className="py-2.5 px-2 text-base-muted">{new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" })}</td>
                     <td className="py-2.5 px-2">
                       <span className={`inline-flex items-center gap-1 ${t.direction === "Long" ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
                         {t.direction === "Long" ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}

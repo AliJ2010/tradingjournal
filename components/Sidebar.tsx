@@ -19,9 +19,21 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState(0);
 
   useEffect(() => {
     setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    fetch("/api/friends")
+      .then((r) => r.json())
+      .then((links) => {
+        if (Array.isArray(links)) {
+          setPendingRequests(links.filter((l) => l.status === "pending" && l.direction === "incoming").length);
+        }
+      })
+      .catch(() => {});
   }, [pathname]);
 
   const nav = [...NAV];
@@ -54,7 +66,12 @@ export default function Sidebar({ displayName, role }: { displayName: string; ro
               }`}
             >
               <span>{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.href === "/friends" && pendingRequests > 0 && (
+                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-pill-red-bg text-white text-[11px] font-semibold leading-none">
+                  {pendingRequests}
+                </span>
+              )}
             </motion.div>
           </Link>
         );

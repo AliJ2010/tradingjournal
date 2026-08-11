@@ -149,7 +149,7 @@ export default function FriendsPage() {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">{t.date ? new Date(t.date).toLocaleDateString() : "—"}</span>
+                  <span className="text-sm">{t.date ? new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
                   {t.result && (
                     <PillBadge
                       small

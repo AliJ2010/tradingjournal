@@ -6,10 +6,20 @@ import { addDays, format, parseISO, subDays } from "date-fns";
 
 type EconEvent = { id: string; date: string; time: string; title: string; impact: string; currency: string };
 
+function formatEventTime(dateKey: string, timeKey: string, timezone: string) {
+  if (!timeKey) return "";
+  // date + time are stored as UTC (see lib/economicCalendar.ts); reconstruct the
+  // real UTC instant and let the browser render it in the viewer's chosen timezone.
+  const utc = new Date(`${dateKey}T${timeKey}:00Z`);
+  if (isNaN(utc.getTime())) return timeKey;
+  return utc.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true, timeZone: timezone });
+}
+
 export default function NewsPage() {
   const [events, setEvents] = useState<EconEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshStatus, setRefreshStatus] = useState("");
+  const [timezone, setTimezone] = useState("UTC");
 
   async function load() {
     const from = format(subDays(new Date(), 3), "yyyy-MM-dd");
@@ -22,14 +32,16 @@ export default function NewsPage() {
 
   useEffect(() => {
     load();
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => data.timezone && setTimezone(data.timezone));
   }, []);
 
   async function refresh() {
     setRefreshStatus("Refreshing from ForexFactory...");
     try {
-      const res = await fetch("/api/calendar", { method: "POST" });
-      const data = await res.json();
-      setRefreshStatus(data.errors?.length ? `Refreshed with issues (${data.errors.length})` : `Refreshed — ${data.totalUpserted} events cached`);
+      await fetch("/api/calendar", { method: "POST" });
+      setRefreshStatus("Refreshed");
       await load();
     } catch {
       setRefreshStatus("Refresh failed — check your connection");
@@ -83,7 +95,7 @@ export default function NewsPage() {
                 >
                   <span>{e.impact === "High" ? "🔴" : "🟠"}</span>
                   <span className="text-sm font-medium flex-1">{e.title}</span>
-                  {e.time && <span className="text-xs text-base-muted">{e.time}</span>}
+                  {e.time && <span className="text-xs text-base-muted">{formatEventTime(e.date, e.time, timezone)}</span>}
                 </div>
               ))}
             </div>

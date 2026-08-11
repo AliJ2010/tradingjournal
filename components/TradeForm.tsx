@@ -220,7 +220,7 @@ export default function TradeForm({
 
       <div className="px-6 pt-6 pb-2">
         <div className="text-2xl font-semibold tracking-tight">
-          {new Date(draft.date).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          {new Date(draft.date).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}
         </div>
       </div>
 

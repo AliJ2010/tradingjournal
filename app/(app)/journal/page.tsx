@@ -136,11 +136,8 @@ export default function JournalPage() {
   async function refreshCalendar() {
     setRefreshStatus("Refreshing...");
     try {
-      const res = await fetch("/api/calendar", { method: "POST" });
-      const data = await res.json();
-      setRefreshStatus(
-        data.errors?.length ? `Refreshed with issues (${data.errors.length})` : `Refreshed — ${data.totalUpserted} events cached`
-      );
+      await fetch("/api/calendar", { method: "POST" });
+      setRefreshStatus("Refreshed");
     } catch {
       setRefreshStatus("Refresh failed — check your connection");
     }
@@ -212,7 +209,7 @@ export default function JournalPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm">
-                      {new Date(dayTrades[0].date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                      {new Date(dayTrades[0].date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}
                     </span>
                     {single ? (
                       <PillBadge small label={single.result} color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : single.result === "Breakeven" ? "gold" : "slate"} />

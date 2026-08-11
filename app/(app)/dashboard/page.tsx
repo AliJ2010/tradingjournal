@@ -47,7 +47,7 @@ export default function DashboardPage() {
     let cumulative = 0;
     const equityCurve = sorted.map((t, i) => {
       cumulative += t.pnl;
-      return { index: i + 1, equity: Number(cumulative.toFixed(2)), date: new Date(t.date).toLocaleDateString() };
+      return { index: i + 1, equity: Number(cumulative.toFixed(2)), date: new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" }) };
     });
 
     const setupCounts: Record<string, number> = {};
@@ -244,7 +244,7 @@ export default function DashboardPage() {
               <tbody>
                 {stats.tradeLog.map((t) => (
                   <tr key={t.id} className="border-b border-base-border/60 last:border-b-0">
-                    <td className="py-2 pr-4 text-base-muted">{new Date(t.date).toLocaleDateString()}</td>
+                    <td className="py-2 pr-4 text-base-muted">{new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" })}</td>
                     <td className="py-2 pr-4">{t.direction || "—"}</td>
                     <td className="py-2 pr-4">{t.instrument || "—"}</td>
                     <td className="py-2 pr-4 text-base-muted">{t.timeFrame || "—"}</td>

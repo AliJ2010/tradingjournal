@@ -1,8 +1,17 @@
-import { formatISO, parseISO, differenceInCalendarDays, startOfDay } from "date-fns";
+import { parseISO, differenceInCalendarDays } from "date-fns";
 
+// Trade dates are stored as UTC midnight of the calendar day the user picked
+// (see emptyDraft's default: new Date().toISOString().slice(0, 10)). Keying by
+// UTC Y/M/D — rather than the viewer's local calendar day — keeps every trade
+// under the date it was actually logged for, regardless of the viewer's
+// timezone (a trade dated "Aug 11" stays "Aug 11" whether you're in Tokyo or
+// New York, instead of shifting to the adjacent day for negative UTC offsets).
 export function toDayKey(date: Date | string) {
-  const d = typeof date === "string" ? parseISO(date) : date;
-  return formatISO(startOfDay(d), { representation: "date" });
+  const d = typeof date === "string" ? new Date(date) : date;
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export function computeStreaks(loggedDates: (Date | string)[]) {
