@@ -2,12 +2,19 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Heart } from "lucide-react";
 import TradeForm, { emptyDraft, type TradeDraft } from "@/components/TradeForm";
 import PillBadge from "@/components/PillBadge";
 import ExportButtons from "@/components/ExportButtons";
 import { toDayKey } from "@/lib/streak";
 import { parseTags } from "@/lib/json";
 import { formatMoney } from "@/lib/pnl";
+
+type UnseenReaction = { id: string; dateKey: string; fromDisplayName: string; fromUsername: string };
+
+function formatDateKeyShort(dateKey: string) {
+  return new Date(`${dateKey}T00:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+}
 
 type TradeRow = {
   id: string;
@@ -51,6 +58,7 @@ export default function JournalPage() {
   const [refreshStatus, setRefreshStatus] = useState("");
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [reactionPopup, setReactionPopup] = useState<UnseenReaction[] | null>(null);
 
   const loadTrades = useCallback(async () => {
     const res = await fetch("/api/trades");
@@ -69,7 +77,13 @@ export default function JournalPage() {
       }
       setLoading(false);
     });
-    fetch("/api/reactions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markSeen" }) }).catch(() => {});
+    fetch("/api/reactions")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.unseen && data.unseen.length > 0) setReactionPopup(data.unseen);
+        return fetch("/api/reactions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markSeen" }) });
+      })
+      .catch(() => {});
   }, [loadTrades]);
 
   useEffect(() => {
@@ -151,6 +165,34 @@ export default function JournalPage() {
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen">
+      <AnimatePresence>
+        {reactionPopup && reactionPopup.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 380, damping: 34 }}
+            className="fixed top-4 right-4 z-50 max-w-sm glass-panel border border-base-border rounded-2xl p-4 shadow-glow"
+          >
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="text-sm font-semibold flex items-center gap-1.5">
+                <Heart size={16} className="text-pill-red-bg" fill="currentColor" />
+                {reactionPopup.length === 1 ? "New reaction" : "New reactions"}
+              </div>
+              <button onClick={() => setReactionPopup(null)} className="text-base-muted hover:text-base-text text-sm leading-none">
+                ✕
+              </button>
+            </div>
+            <div className="space-y-1.5">
+              {reactionPopup.map((r) => (
+                <div key={r.id} className="text-sm text-base-muted">
+                  <span className="text-base-text font-medium">{r.fromDisplayName}</span> hearted your {formatDateKeyShort(r.dateKey)} entry
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className={`${mobileDetailOpen ? "hidden" : "flex"} md:flex w-full md:w-72 shrink-0 border-r border-base-border flex-col md:h-screen`}>
         <div className="p-4 border-b border-base-border flex items-center justify-between gap-2">
           <button

@@ -18,8 +18,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(byDay);
   }
 
-  const unseenCount = await prisma.journalReaction.count({ where: { toUserId: user.id, seen: false } });
-  return NextResponse.json({ unseenCount });
+  const unseen = await prisma.journalReaction.findMany({
+    where: { toUserId: user.id, seen: false },
+    include: { from: true },
+    orderBy: { createdAt: "asc" },
+  });
+  return NextResponse.json({
+    unseenCount: unseen.length,
+    unseen: unseen.map((r) => ({
+      id: r.id,
+      dateKey: r.dateKey,
+      fromDisplayName: r.from.displayName,
+      fromUsername: r.from.username,
+    })),
+  });
 }
 
 export async function POST(req: NextRequest) {

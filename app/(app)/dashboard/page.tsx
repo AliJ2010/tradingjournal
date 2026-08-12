@@ -67,19 +67,6 @@ export default function DashboardPage() {
       .slice(0, 8)
       .map(([name, count]) => ({ name, count }));
 
-    const instrumentMap: Record<string, { count: number; wins: number; pnl: number }> = {};
-    for (const t of trades) {
-      const inst = (t.instrument || "").trim();
-      if (!inst) continue;
-      if (!instrumentMap[inst]) instrumentMap[inst] = { count: 0, wins: 0, pnl: 0 };
-      instrumentMap[inst].count += 1;
-      if (t.result === "Win" || t.result === "Breakeven") instrumentMap[inst].wins += 1;
-      instrumentMap[inst].pnl += t.pnl;
-    }
-    const instrumentBreakdown = Object.entries(instrumentMap)
-      .map(([name, v]) => ({ name, count: v.count, winRate: v.count ? (v.wins / v.count) * 100 : 0, pnl: v.pnl }))
-      .sort((a, b) => b.pnl - a.pnl);
-
     let winsSoFar = 0;
     const tradeLog = sorted
       .map((t, i) => {
@@ -90,7 +77,7 @@ export default function DashboardPage() {
       })
       .reverse();
 
-    return { wins, pureWins, breakevens, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown, instrumentBreakdown, tradeLog };
+    return { wins, pureWins, breakevens, losses, total, winRate, totalPnl, avgPnl, rulesFollowedRate, equityCurve, setupBreakdown, tradeLog };
   }, [trades]);
 
   const winRateCount = useCountUp(stats.winRate);
@@ -211,36 +198,6 @@ export default function DashboardPage() {
               <Bar dataKey="count" fill="#3d6fa8" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      )}
-
-      {stats.instrumentBreakdown.length > 0 && (
-        <div className="glass-panel border border-base-border rounded-2xl p-6 mt-6">
-          <h2 className="text-sm font-medium text-base-muted mb-4">Instrument comparison</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-base-muted text-left border-b border-base-border">
-                  <th className="pb-2 font-medium">Instrument</th>
-                  <th className="pb-2 font-medium text-right">Trades</th>
-                  <th className="pb-2 font-medium text-right">Win rate</th>
-                  <th className="pb-2 font-medium text-right">PnL</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.instrumentBreakdown.map((inst) => (
-                  <tr key={inst.name} className="border-b border-base-border/60 last:border-b-0">
-                    <td className="py-2 font-medium">{inst.name}</td>
-                    <td className="py-2 text-right text-base-muted">{inst.count}</td>
-                    <td className="py-2 text-right text-base-muted">{inst.winRate.toFixed(0)}%</td>
-                    <td className={`py-2 text-right font-semibold ${inst.pnl >= 0 ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-                      {inst.pnl < 0 ? "-" : "+"}${formatMoney(inst.pnl, 2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ import TradeForm, { type TradeDraft } from "@/components/TradeForm";
 import PillBadge from "@/components/PillBadge";
 import { parseTags } from "@/lib/json";
 import { toDayKey } from "@/lib/streak";
+import { formatMoney } from "@/lib/pnl";
 
 type FriendLink = {
   id: string;
@@ -54,6 +55,7 @@ export default function FriendsPage() {
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [reactions, setReactions] = useState<Record<string, Reaction>>({});
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   async function loadLinks() {
     const res = await fetch("/api/friends");
@@ -110,6 +112,7 @@ export default function FriendsPage() {
   async function viewFriend(friend: { id: string; displayName: string }) {
     setViewingFriend(friend);
     setSelectedTradeId(null);
+    setExpandedDay(null);
     const [tradesRes, reactionsRes] = await Promise.all([
       fetch(`/api/friends/${friend.id}`),
       fetch(`/api/reactions?friendId=${friend.id}`),
@@ -176,51 +179,96 @@ export default function FriendsPage() {
             {groupedDays.length === 0 && <p className="px-3 text-sm text-base-muted">No entries yet.</p>}
             {groupedDays.map(({ key, trades: dayTrades }) => {
               const first = dayTrades[0];
+              const single = dayTrades.length === 1 ? first : null;
               const reaction = reactions[key] || { count: 0, reactedByMe: false };
               const isSelected = dayTrades.some((t) => t.id === selectedTradeId);
+              const isExpanded = expandedDay === key;
               return (
-                <div
-                  key={key}
-                  className={`rounded-lg transition-colors flex items-center gap-1 ${isSelected ? "bg-base-panel2" : "hover:bg-base-panel2/60"}`}
-                >
+                <div key={key}>
                   <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => {
-                      setSelectedTradeId(first.id);
-                      setMobileDetailOpen(true);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        setSelectedTradeId(first.id);
-                        setMobileDetailOpen(true);
-                      }
-                    }}
-                    className="flex-1 min-w-0 text-left px-3 py-2.5 cursor-pointer flex items-center justify-between gap-2"
+                    className={`rounded-lg transition-colors flex items-center gap-1 ${isSelected ? "bg-base-panel2" : "hover:bg-base-panel2/60"}`}
                   >
-                    <span className="text-sm">{first.date ? new Date(first.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
-                    {dayTrades.length > 1 ? (
-                      <PillBadge small label={`${dayTrades.length} trades`} color="blue" />
-                    ) : (
-                      first.result && (
-                        <PillBadge
-                          small
-                          label={first.result}
-                          color={first.result === "Win" ? "green" : first.result === "Loss" ? "red" : first.result === "Breakeven" ? "gold" : "slate"}
-                        />
-                      )
-                    )}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        if (single) {
+                          setSelectedTradeId(single.id);
+                          setMobileDetailOpen(true);
+                        } else {
+                          setExpandedDay(isExpanded ? null : key);
+                        }
+                      }}
+                      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.click()}
+                      className="flex-1 min-w-0 text-left px-3 py-2.5 cursor-pointer flex items-center justify-between gap-2"
+                    >
+                      <span className="text-sm">{first.date ? new Date(first.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
+                      {single ? (
+                        single.result && (
+                          <PillBadge
+                            small
+                            label={single.result}
+                            color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : single.result === "Breakeven" ? "gold" : "slate"}
+                          />
+                        )
+                      ) : (
+                        <PillBadge small label={`${dayTrades.length} trades ${isExpanded ? "▾" : "▸"}`} color="blue" />
+                      )}
+                    </div>
+                    <button
+                      onClick={() => toggleHeart(key)}
+                      title={reaction.reactedByMe ? "Un-heart this day" : "Heart this day"}
+                      className={`shrink-0 flex items-center gap-1 pr-3 pl-1.5 py-2.5 transition-colors ${
+                        reaction.reactedByMe ? "text-pill-red-bg" : "text-base-muted hover:text-pill-red-bg"
+                      }`}
+                    >
+                      <Heart size={15} fill={reaction.reactedByMe ? "currentColor" : "none"} />
+                      {reaction.count > 0 && <span className="text-xs">{reaction.count}</span>}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => toggleHeart(key)}
-                    title={reaction.reactedByMe ? "Un-heart this day" : "Heart this day"}
-                    className={`shrink-0 flex items-center gap-1 pr-3 pl-1.5 py-2.5 transition-colors ${
-                      reaction.reactedByMe ? "text-pill-red-bg" : "text-base-muted hover:text-pill-red-bg"
-                    }`}
-                  >
-                    <Heart size={15} fill={reaction.reactedByMe ? "currentColor" : "none"} />
-                    {reaction.count > 0 && <span className="text-xs">{reaction.count}</span>}
-                  </button>
+
+                  <AnimatePresence>
+                    {isExpanded && dayTrades.length > 1 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden pl-3"
+                      >
+                        {dayTrades.map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => {
+                              setSelectedTradeId(t.id);
+                              setMobileDetailOpen(true);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors ${
+                              selectedTradeId === t.id ? "bg-base-panel2" : "hover:bg-base-panel2/60"
+                            }`}
+                          >
+                            <PillBadge
+                              small
+                              label={t.result}
+                              color={t.result === "Win" ? "green" : t.result === "Loss" ? "red" : t.result === "Breakeven" ? "gold" : "slate"}
+                            />
+                            <span
+                              className={
+                                t.result === "Win"
+                                  ? "text-pill-green-bg"
+                                  : t.result === "Loss"
+                                  ? "text-pill-red-bg"
+                                  : t.result === "Breakeven"
+                                  ? "text-pill-gold-bg"
+                                  : "text-base-muted"
+                              }
+                            >
+                              {t.pnl < 0 ? "-" : ""}${formatMoney(t.pnl, 2)}
+                            </span>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
