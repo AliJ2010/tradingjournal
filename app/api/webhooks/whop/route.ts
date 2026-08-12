@@ -183,6 +183,31 @@ export async function POST(req: NextRequest) {
             update: { status: "succeeded" },
           })
           .catch(() => {});
+
+        // Renewals don't re-fire membership.activated (the membership just stays
+        // "active") — only a fresh invoice.paid shows up. Refresh the AI-message
+        // period here so usage resets on the real billing cycle, not just once at
+        // signup. Skipped if whopMembershipId isn't set yet — membership.activated
+        // handles the very first period on its own, whichever event lands first.
+        if (planKey === "monthly" && user.whopMembershipId) {
+          try {
+            const membership = await getWhopClient().memberships.retrieve(user.whopMembershipId);
+            const periodStart = toDate(membership.renewal_period_start);
+            const periodEnd = toDate(membership.renewal_period_end);
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { aiPeriodStart: periodStart, aiPeriodEnd: periodEnd, aiMessagesUsed: 0 },
+            });
+            await prisma.subscription
+              .update({
+                where: { whopMembershipId: user.whopMembershipId },
+                data: { currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, status: membership.status },
+              })
+              .catch(() => {});
+          } catch (err) {
+            console.error("Failed to refresh membership period on invoice.paid", err);
+          }
+        }
         break;
       }
 
