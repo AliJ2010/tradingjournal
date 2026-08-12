@@ -11,6 +11,7 @@ function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [referralCode, setReferralCode] = useState("");
+  const [showCodeBanner, setShowCodeBanner] = useState(true);
   const [monthly, setMonthly] = useState<PriceResult>({ listed: PLAN_PRICES.monthly.listed, price: PLAN_PRICES.monthly.listed, source: "none", code: null });
   const [lifetime, setLifetime] = useState<PriceResult>({ listed: PLAN_PRICES.lifetime.listed, price: PLAN_PRICES.lifetime.listed, source: "none", code: null });
 
@@ -60,7 +61,22 @@ function PricingContent() {
   return (
     <div className="p-4 sm:p-8 max-w-4xl mx-auto">
       <h1 className="text-2xl font-semibold mb-1">Pricing</h1>
-      <p className="text-sm text-base-muted mb-8">Simple pricing, no surprises.</p>
+      <p className="text-sm text-base-muted mb-6">Simple pricing, no surprises.</p>
+
+      {showCodeBanner && !hasMonthlyDiscount && !hasLifetimeDiscount && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between gap-3 bg-accent/10 border border-accent/30 rounded-xl px-4 py-2.5 mb-6 text-sm"
+        >
+          <span>
+            💡 Have a discount code? Try <span className="font-mono font-medium">OPTIC</span>, or use a creator's referral code — enter it at checkout.
+          </span>
+          <button onClick={() => setShowCodeBanner(false)} className="text-base-muted hover:text-base-text shrink-0">
+            ✕
+          </button>
+        </motion.div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">

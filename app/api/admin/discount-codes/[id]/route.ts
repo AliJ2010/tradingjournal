@@ -11,6 +11,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const data: Record<string, unknown> = {};
   if (typeof body.active === "boolean") data.active = body.active;
 
+  // The discount amount can only be edited before a real Whop promo code exists —
+  // Whop doesn't support changing a promo's amount_off after creation, so editing
+  // our side afterward would silently desync the displayed price from what Whop
+  // actually charges. Delete and recreate the code instead if the amount needs to change.
+  if (body.percentOff !== undefined || body.amountOffCents !== undefined || body.endsAt !== undefined) {
+    const existing = await prisma.discountCode.findUnique({ where: { id: params.id } });
+    if (!existing) return NextResponse.json({ error: "Discount code not found." }, { status: 404 });
+    if (existing.whopPromoCodeId && (body.percentOff !== undefined || body.amountOffCents !== undefined)) {
+      return NextResponse.json({ error: "Can't change the discount amount once it's linked to a real Whop promo code — delete and recreate it instead." }, { status: 409 });
+    }
+    if (body.percentOff !== undefined) data.percentOff = body.percentOff === null ? null : Number(body.percentOff);
+    if (body.amountOffCents !== undefined) data.amountOffCents = body.amountOffCents === null ? null : Number(body.amountOffCents);
+    if (body.endsAt !== undefined) data.endsAt = body.endsAt ? new Date(body.endsAt) : null;
+  }
+
   if (body.createWhopPromoCode) {
     const code = await prisma.discountCode.findUnique({ where: { id: params.id } });
     if (!code) return NextResponse.json({ error: "Discount code not found." }, { status: 404 });
@@ -35,7 +50,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         company_id: process.env.WHOP_COMPANY_ID,
         new_users_only: false,
         unlimited_stock: true,
-        promo_duration_months: 999,
+        // Same one-billing-cycle window as the create route — general codes are a
+        // limited-time incentive, not a locked-in rate.
+        promo_duration_months: 1,
         plan_ids: planIds,
       });
       data.whopPromoCodeId = promo.id;

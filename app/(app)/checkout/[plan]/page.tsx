@@ -88,11 +88,11 @@ function CheckoutContent() {
             Apply
           </button>
         </div>
-        {session?.pricePreview.source === "creator" && (
+        {session?.pricePreview.source && session.pricePreview.source !== "none" ? (
           <p className="text-xs text-pill-green-bg mb-4">✓ Code {session.pricePreview.code} applied</p>
+        ) : (
+          <p className="text-xs text-base-muted mb-4">Have a code? Try <span className="font-mono">OPTIC</span>, or use a creator's referral code.</p>
         )}
-        {session?.pricePreview.source === "launch" && <p className="text-xs text-accent mb-4">Launch pricing applied automatically.</p>}
-        {!session?.pricePreview.source || session.pricePreview.source === "none" ? <div className="mb-4" /> : null}
 
         <div className="border-t border-base-border pt-4 mb-4">
           <div className="text-xs text-base-muted mb-2">Order summary</div>

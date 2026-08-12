@@ -23,6 +23,18 @@ export async function GET(req: NextRequest) {
     include: { from: true },
     orderBy: { createdAt: "asc" },
   });
+
+  const allReceived = await prisma.journalReaction.findMany({
+    where: { toUserId: user.id },
+    include: { from: true },
+  });
+  const byDay: Record<string, { count: number; names: string[] }> = {};
+  for (const r of allReceived) {
+    if (!byDay[r.dateKey]) byDay[r.dateKey] = { count: 0, names: [] };
+    byDay[r.dateKey].count += 1;
+    byDay[r.dateKey].names.push(r.from.displayName);
+  }
+
   return NextResponse.json({
     unseenCount: unseen.length,
     unseen: unseen.map((r) => ({
@@ -31,6 +43,7 @@ export async function GET(req: NextRequest) {
       fromDisplayName: r.from.displayName,
       fromUsername: r.from.username,
     })),
+    byDay,
   });
 }
 

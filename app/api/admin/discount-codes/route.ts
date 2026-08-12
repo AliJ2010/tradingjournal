@@ -45,7 +45,11 @@ export async function POST(req: NextRequest) {
         company_id: process.env.WHOP_COMPANY_ID,
         new_users_only: false,
         unlimited_stock: true,
-        promo_duration_months: 999,
+        // General codes (the launch promo) are a limited-time incentive, not a
+        // locked-in rate — one discounted billing cycle, then full price. Creator
+        // codes are the opposite (see the plan-rules route): a permanent discount
+        // for the customer's whole subscription.
+        promo_duration_months: 1,
         plan_ids: planIds,
       });
       whopPromoCodeId = promo.id;

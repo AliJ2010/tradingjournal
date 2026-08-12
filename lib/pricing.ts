@@ -13,23 +13,24 @@ export function applyDiscount(listed: number, percentOff?: number | null, amount
   return listed;
 }
 
-// The general launch promo — active automatically (no code needed) while it's within
-// its own startsAt/endsAt window and scoped to the given plan. A creator code, when
-// present, takes priority over this (never both).
-export async function getActiveLaunchDiscount(planKey: PlanKey) {
+// General discount codes (e.g. the launch promo) — like creator codes, these only
+// apply when the customer actually enters the matching code. Nothing auto-applies
+// without one; the pricing/checkout pages advertise that a code exists, they don't
+// pre-fill it.
+export async function getGeneralDiscountByCode(code: string, planKey: PlanKey) {
+  const clean = code.trim().toUpperCase();
+  if (!clean) return null;
   const now = new Date();
-  const codes = await prisma.discountCode.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } });
-  for (const c of codes) {
-    let keys: string[] = [];
-    try {
-      keys = JSON.parse(c.planKeys || "[]");
-    } catch {}
-    if (!keys.includes(planKey)) continue;
-    if (c.startsAt && c.startsAt > now) continue;
-    if (c.endsAt && c.endsAt < now) continue;
-    return c;
-  }
-  return null;
+  const discountCode = await prisma.discountCode.findUnique({ where: { code: clean } });
+  if (!discountCode || !discountCode.active) return null;
+  let keys: string[] = [];
+  try {
+    keys = JSON.parse(discountCode.planKeys || "[]");
+  } catch {}
+  if (!keys.includes(planKey)) return null;
+  if (discountCode.startsAt && discountCode.startsAt > now) return null;
+  if (discountCode.endsAt && discountCode.endsAt < now) return null;
+  return discountCode;
 }
 
 export async function getCreatorPlanRule(code: string, planKey: PlanKey) {
@@ -46,7 +47,8 @@ export async function getCreatorPlanRule(code: string, planKey: PlanKey) {
 }
 
 // Resolves the single effective discount for a plan given an optional entered code.
-// A creator code always wins over the general launch discount — never both.
+// Nothing applies without a code that actually matches — a creator code wins over a
+// general code if somehow both match the same string (never both at once).
 export async function resolveEffectivePrice(planKey: PlanKey, code?: string | null) {
   const listed = PLAN_PRICES[planKey].listed;
 
@@ -65,20 +67,20 @@ export async function resolveEffectivePrice(planKey: PlanKey, code?: string | nu
         whopPromoCode: rule.whopPromoCode,
       };
     }
-  }
 
-  const launch = await getActiveLaunchDiscount(planKey);
-  if (launch) {
-    const price = applyDiscount(listed, launch.percentOff, launch.amountOffCents);
-    return {
-      listed,
-      price,
-      source: "launch" as const,
-      code: launch.code,
-      creatorCodeId: null,
-      whopAffiliateCode: null,
-      whopPromoCode: launch.code,
-    };
+    const general = await getGeneralDiscountByCode(code, planKey);
+    if (general) {
+      const price = applyDiscount(listed, general.percentOff, general.amountOffCents);
+      return {
+        listed,
+        price,
+        source: "launch" as const,
+        code: general.code,
+        creatorCodeId: null,
+        whopAffiliateCode: null,
+        whopPromoCode: general.code,
+      };
+    }
   }
 
   return { listed, price: listed, source: "none" as const, code: null, creatorCodeId: null, whopAffiliateCode: null, whopPromoCode: null };

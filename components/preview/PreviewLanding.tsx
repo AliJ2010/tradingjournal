@@ -302,7 +302,7 @@ function HeroMockup() {
       <div className="grid grid-cols-3 gap-3 mb-4">
         <MiniStat label="Win rate" value="64.2%" />
         <MiniStat label="Total PnL" value="+$4,820" tone="green" />
-        <MiniStat label="Avg / trade" value="+$96" tone="green" />
+        <MiniStat label="Avg / trade" value="+$522" tone="green" />
       </div>
       <MiniEquityCurve />
     </BrowserFrame>

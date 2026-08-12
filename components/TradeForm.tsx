@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PropertyRow from "./PropertyRow";
 import PillBadge, { colorForTag, colorForEmotion } from "./PillBadge";
-import NewsBanner from "./NewsBanner";
 import ImageDropField from "./ImageDropField";
 import { TRADE_FIELDS, EMOTION_TAG_SUGGESTIONS, type FieldDef } from "@/lib/tradeFields";
 import { isWeekendDate } from "@/lib/tradeDate";
@@ -296,10 +295,10 @@ export default function TradeForm({
 
   useEffect(() => setDraft(initial), [initial]);
 
-  // Auto-detect red-folder news for the trade's date — mirrors NewsBanner's own
-  // fetch so the two never disagree. Only for a not-yet-saved entry: once a trade
-  // has an id, its newsTags are the historical record and shouldn't be overwritten
-  // by a live recheck of the calendar.
+  // Auto-detect red-folder news for the trade's date, shown only in the "News
+  // today?" field below. Only for a not-yet-saved entry: once a trade has an id,
+  // its newsTags are the historical record and shouldn't be overwritten by a live
+  // recheck of the calendar.
   useEffect(() => {
     if (readOnly || draft.id || !draft.date) return;
     fetch(`/api/calendar?date=${draft.date}`)
@@ -386,11 +385,6 @@ export default function TradeForm({
         </div>
       </div>
 
-      <div className="px-6">
-        <div className="mb-4">
-          <NewsBanner date={draft.date} />
-        </div>
-      </div>
 
       <div className="px-6 pb-6">
         {TRADE_FIELDS.map((field, i) => {

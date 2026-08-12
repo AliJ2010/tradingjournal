@@ -59,6 +59,7 @@ export default function JournalPage() {
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [reactionPopup, setReactionPopup] = useState<UnseenReaction[] | null>(null);
+  const [likesByDay, setLikesByDay] = useState<Record<string, { count: number; names: string[] }>>({});
 
   const loadTrades = useCallback(async () => {
     const res = await fetch("/api/trades");
@@ -80,6 +81,7 @@ export default function JournalPage() {
     fetch("/api/reactions")
       .then((r) => r.json())
       .then((data) => {
+        if (data.byDay) setLikesByDay(data.byDay);
         if (data.unseen && data.unseen.length > 0) setReactionPopup(data.unseen);
         return fetch("/api/reactions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markSeen" }) });
       })
@@ -254,11 +256,22 @@ export default function JournalPage() {
                     <span className="text-sm">
                       {new Date(dayTrades[0].date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}
                     </span>
-                    {single ? (
-                      <PillBadge small label={single.result} color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : single.result === "Breakeven" ? "gold" : "slate"} />
-                    ) : (
-                      <PillBadge small label={`${dayTrades.length} trades`} color="blue" />
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {likesByDay[key]?.count > 0 && (
+                        <span
+                          title={likesByDay[key].names.join(", ")}
+                          className="flex items-center gap-0.5 text-pill-pink-bg text-xs font-medium cursor-default"
+                        >
+                          <Heart size={12} fill="currentColor" />
+                          {likesByDay[key].count}
+                        </span>
+                      )}
+                      {single ? (
+                        <PillBadge small label={single.result} color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : single.result === "Breakeven" ? "gold" : "slate"} />
+                      ) : (
+                        <PillBadge small label={`${dayTrades.length} trades`} color="blue" />
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className={`text-xs ${pnlColor}`}>

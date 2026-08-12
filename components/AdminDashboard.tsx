@@ -58,6 +58,7 @@ export default function AdminDashboard() {
   const [creatorCodes, setCreatorCodes] = useState<CreatorCode[]>([]);
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [expandedCreator, setExpandedCreator] = useState<string | null>(null);
 
   const [newCode, setNewCode] = useState("");
@@ -73,15 +74,21 @@ export default function AdminDashboard() {
 
   async function loadAll() {
     const [u, d, c, s] = await Promise.all([
-      fetch("/api/admin/users").then((r) => r.json()),
-      fetch("/api/admin/discount-codes").then((r) => r.json()),
-      fetch("/api/admin/creator-codes").then((r) => r.json()),
-      fetch("/api/admin/support").then((r) => r.json()),
+      fetch("/api/admin/users"),
+      fetch("/api/admin/discount-codes"),
+      fetch("/api/admin/creator-codes"),
+      fetch("/api/admin/support"),
     ]);
-    setUsers(u);
-    setDiscountCodes(d);
-    setCreatorCodes(c);
-    setSupportMessages(s);
+    if (!u.ok || !d.ok || !c.ok || !s.ok) {
+      setLoadError("Couldn't load the admin dashboard — try refreshing.");
+      setLoading(false);
+      return;
+    }
+    setLoadError("");
+    setUsers(await u.json());
+    setDiscountCodes(await d.json());
+    setCreatorCodes(await c.json());
+    setSupportMessages(await s.json());
     setLoading(false);
   }
 
@@ -118,6 +125,30 @@ export default function AdminDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active }),
     });
+    loadAll();
+  }
+
+  async function deleteDiscountCode(id: string, code: string) {
+    if (!confirm(`Permanently delete the discount code "${code}"? This can't be undone.`)) return;
+    await fetch(`/api/admin/discount-codes/${id}`, { method: "DELETE" });
+    loadAll();
+  }
+
+  async function editDiscountCode(id: string, percentOff: string) {
+    setCodeError("");
+    const res = await fetch(`/api/admin/discount-codes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ percentOff: Number(percentOff) }),
+    });
+    const data = await res.json();
+    if (!res.ok) setCodeError(data.error);
+    loadAll();
+  }
+
+  async function deleteCreator(id: string, code: string) {
+    if (!confirm(`Permanently delete the creator code "${code}"? This removes their referral history too. This can't be undone.`)) return;
+    await fetch(`/api/admin/creator-codes/${id}`, { method: "DELETE" });
     loadAll();
   }
 
@@ -163,35 +194,28 @@ export default function AdminDashboard() {
     loadAll();
   }
 
-  async function createLifetimeRule(creatorId: string, discountValue: string, commissionValue: string, createPromo: boolean) {
-    await fetch(`/api/admin/creator-codes/${creatorId}/plan-rules`, {
+  async function saveRule(
+    creatorId: string,
+    planKey: "monthly" | "lifetime",
+    discountValue: string,
+    commissionValue: string,
+    commissionDuration: string,
+    createPromo: boolean
+  ) {
+    setCreatorError("");
+    const res = await fetch(`/api/admin/creator-codes/${creatorId}/plan-rules`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        planKey: "lifetime",
+        planKey,
         discountValue: Number(discountValue),
         commissionValue: Number(commissionValue),
-        commissionDuration: "first_payment",
+        commissionDuration,
         createWhopPromoCode: createPromo,
       }),
     });
-    loadAll();
-  }
-
-  async function createWhopPromoForMonthly(creator: CreatorCode) {
-    const rule = creator.planRules.find((r) => r.planKey === "monthly");
-    if (!rule) return;
-    await fetch(`/api/admin/creator-codes/${creator.id}/plan-rules`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        planKey: "monthly",
-        discountValue: rule.discountValue,
-        commissionValue: rule.commissionValue,
-        commissionDuration: rule.commissionDuration,
-        createWhopPromoCode: true,
-      }),
-    });
+    const data = await res.json();
+    if (!res.ok) setCreatorError(data.error);
     loadAll();
   }
 
@@ -214,6 +238,7 @@ export default function AdminDashboard() {
   }
 
   if (loading) return <div className="p-8 text-base-muted text-sm">Loading admin dashboard...</div>;
+  if (loadError) return <div className="p-8 text-pill-red-bg text-sm">{loadError}</div>;
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-8">
@@ -319,7 +344,17 @@ export default function AdminDashboard() {
             {discountCodes.map((c) => (
               <div key={c.id} className="flex items-center justify-between text-sm px-2 py-1.5 rounded-lg hover:bg-base-panel2/50">
                 <span className="font-mono">{c.code}</span>
-                <span className="text-base-muted text-xs">{c.percentOff ? `${c.percentOff}% off` : c.amountOffCents ? `$${(c.amountOffCents / 100).toFixed(2)} off` : "—"}</span>
+                {c.whopPromoCodeId ? (
+                  <span className="text-base-muted text-xs">{c.percentOff ? `${c.percentOff}% off` : c.amountOffCents ? `$${(c.amountOffCents / 100).toFixed(2)} off` : "—"}</span>
+                ) : (
+                  <input
+                    type="number"
+                    defaultValue={c.percentOff ?? ""}
+                    onBlur={(e) => e.target.value && editDiscountCode(c.id, e.target.value)}
+                    title="% off — editable until linked to a real Whop promo code"
+                    className="w-14 bg-base-panel2 border border-base-border rounded-md px-1.5 py-0.5 text-xs text-center"
+                  />
+                )}
                 <span className="text-base-muted text-xs">{c.endsAt ? `ends ${new Date(c.endsAt).toLocaleDateString()}` : "no end date"}</span>
                 {c.whopPromoCodeId ? (
                   <span className="text-xs text-pill-green-bg">Whop-linked</span>
@@ -333,6 +368,9 @@ export default function AdminDashboard() {
                   className={`text-xs px-2 py-1 rounded-md ${c.active ? "bg-pill-green-bg/20 text-pill-green-bg" : "bg-base-panel2 text-base-muted"}`}
                 >
                   {c.active ? "Active" : "Disabled"}
+                </button>
+                <button onClick={() => deleteDiscountCode(c.id, c.code)} className="text-xs text-pill-red-bg hover:underline" title="Delete permanently">
+                  Delete
                 </button>
               </div>
             ))}
@@ -393,24 +431,33 @@ export default function AdminDashboard() {
                     <span className={`text-xs px-1.5 py-0.5 rounded ${c.active ? "text-pill-green-bg" : "text-base-muted"}`}>
                       {c.active ? "Active" : "Disabled"}
                     </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteCreator(c.id, c.code);
+                      }}
+                      className="text-xs text-pill-red-bg hover:underline"
+                      title="Delete permanently"
+                    >
+                      Delete
+                    </button>
                   </div>
                   {isExpanded && (
-                    <div className="px-3 pb-3 space-y-2 text-xs">
-                      <div className="text-base-muted">
-                        Monthly: {monthlyRule?.discountValue}% off, {monthlyRule?.commissionValue}% commission ({monthlyRule?.commissionDuration}) —{" "}
-                        {monthlyRule?.whopPromoCodeId ? "Whop promo linked" : "no Whop promo yet"}
+                    <div className="px-3 pb-3 space-y-3 text-xs">
+                      <div>
+                        <div className="text-base-muted mb-1">Monthly</div>
+                        <PlanRuleEditor
+                          rule={monthlyRule}
+                          onSave={(d, comm, dur, createPromo) => saveRule(c.id, "monthly", d, comm, dur, createPromo)}
+                        />
                       </div>
-                      {!monthlyRule?.whopPromoCodeId && (
-                        <button onClick={() => createWhopPromoForMonthly(c)} className="text-accent hover:underline">
-                          Create Whop promo code for Monthly
-                        </button>
-                      )}
-                      <div className="text-base-muted mt-2">
-                        Lifetime: {lifetimeRule ? `${lifetimeRule.discountValue}% off, ${lifetimeRule.commissionValue}% commission` : "not configured"}
+                      <div>
+                        <div className="text-base-muted mb-1">Lifetime</div>
+                        <PlanRuleEditor
+                          rule={lifetimeRule}
+                          onSave={(d, comm, dur, createPromo) => saveRule(c.id, "lifetime", d, comm, dur, createPromo)}
+                        />
                       </div>
-                      {!lifetimeRule && (
-                        <LifetimeRuleForm onSubmit={(d, comm, createPromo) => createLifetimeRule(c.id, d, comm, createPromo)} />
-                      )}
                       <div className="flex gap-2 items-center pt-2">
                         <input
                           defaultValue={c.whopAffiliateCode || ""}
@@ -459,17 +506,51 @@ export default function AdminDashboard() {
   );
 }
 
-function LifetimeRuleForm({ onSubmit }: { onSubmit: (discount: string, commission: string, createPromo: boolean) => void }) {
-  const [discount, setDiscount] = useState("20");
-  const [commission, setCommission] = useState("20");
+// Handles both creating a new plan rule and editing an existing one. Commission
+// fields are always editable (purely informational — the real payout comes from
+// a separate Whop Affiliate Override). Discount is locked once a real Whop promo
+// code exists, since Whop doesn't support changing a promo's amount after creation.
+function PlanRuleEditor({
+  rule,
+  onSave,
+}: {
+  rule?: { discountValue: number; commissionValue: number; commissionDuration: string; whopPromoCodeId: string | null };
+  onSave: (discount: string, commission: string, duration: string, createPromo: boolean) => void;
+}) {
+  const [discount, setDiscount] = useState(String(rule?.discountValue ?? 25));
+  const [commission, setCommission] = useState(String(rule?.commissionValue ?? 20));
+  const [duration, setDuration] = useState(rule?.commissionDuration ?? "all_payments");
+  const hasPromo = Boolean(rule?.whopPromoCodeId);
 
   return (
-    <div className="flex gap-2 items-center">
-      <input value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="% off" className="w-16 bg-base-panel2 border border-base-border rounded-md px-2 py-1" />
-      <input value={commission} onChange={(e) => setCommission(e.target.value)} placeholder="% comm" className="w-16 bg-base-panel2 border border-base-border rounded-md px-2 py-1" />
-      <button onClick={() => onSubmit(discount, commission, true)} className="text-accent hover:underline">
-        Set up Lifetime rule + Whop promo
+    <div className="flex flex-wrap gap-2 items-center">
+      <input
+        value={discount}
+        onChange={(e) => setDiscount(e.target.value)}
+        disabled={hasPromo}
+        title={hasPromo ? "Locked — a real Whop promo code already uses this amount" : "% off"}
+        placeholder="% off"
+        className="w-16 bg-base-panel2 border border-base-border rounded-md px-2 py-1 disabled:opacity-50"
+      />
+      <input
+        value={commission}
+        onChange={(e) => setCommission(e.target.value)}
+        placeholder="% comm"
+        className="w-16 bg-base-panel2 border border-base-border rounded-md px-2 py-1"
+      />
+      <select value={duration} onChange={(e) => setDuration(e.target.value)} className="bg-base-panel2 border border-base-border rounded-md px-2 py-1">
+        <option value="all_payments">Recurring</option>
+        <option value="first_payment">First payment only</option>
+      </select>
+      <button onClick={() => onSave(discount, commission, duration, false)} className="text-accent hover:underline">
+        Save
       </button>
+      {!hasPromo && (
+        <button onClick={() => onSave(discount, commission, duration, true)} className="text-accent hover:underline">
+          Save + create Whop promo
+        </button>
+      )}
+      {hasPromo && <span className="text-pill-green-bg">Whop promo linked</span>}
     </div>
   );
 }

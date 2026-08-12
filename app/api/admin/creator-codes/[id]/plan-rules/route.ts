@@ -27,6 +27,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "discountValue and commissionValue must be numbers." }, { status: 400 });
   }
 
+  // Commission fields are purely informational on our side (the real payout is
+  // controlled by a separate Whop Affiliate Override) — always editable. The
+  // discount amount maps to a real Whop promo code once created, and Whop doesn't
+  // support changing a promo's amount_off after the fact, so editing it here would
+  // silently desync what we display from what Whop actually charges.
+  const existingRule = await prisma.creatorPlanRule.findUnique({
+    where: { creatorCodeId_planKey: { creatorCodeId: creatorCode.id, planKey } },
+  });
+  if (existingRule?.whopPromoCodeId && !createWhopPromoCode && (existingRule.discountType !== discountType || existingRule.discountValue !== discountValue)) {
+    return NextResponse.json(
+      { error: "Can't change the discount amount once it's linked to a real Whop promo code — delete and recreate this creator code instead." },
+      { status: 409 }
+    );
+  }
+
   let whopPromoCodeId: string | null = null;
   if (createWhopPromoCode) {
     const planId = whopPlanId(planKey);

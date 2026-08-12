@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Download, X } from "lucide-react";
 import PnlCard from "./PnlCard";
 import { toDayKey } from "@/lib/streak";
-import { effectiveRR } from "@/lib/rr";
+import { effectiveRR, formatNumber } from "@/lib/rr";
 
 type Trade = { date: string; pnl: number; result: string; rr: string };
 
@@ -23,7 +23,7 @@ export default function DownloadPnlCardButton({ trades, username }: { trades: Tr
     const wins = dayTrades.filter((t) => t.result === "Win" || t.result === "Breakeven").length;
     const winRate = dayTrades.length > 0 ? (wins / dayTrades.length) * 100 : 0;
     const rrValues = dayTrades.map((t) => effectiveRR(t.rr, t.result)).filter((v): v is number => v !== null);
-    const rrLabel = rrValues.length === 0 ? "—" : (rrValues.reduce((a, b) => a + b, 0) / rrValues.length).toFixed(1);
+    const rrLabel = rrValues.length === 0 ? "—" : formatNumber(rrValues.reduce((a, b) => a + b, 0));
     const dateLabel = new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
     return { pnl, trades: dayTrades.length, winRate, rrLabel, dateLabel };
   }, [trades]);
