@@ -296,6 +296,22 @@ export default function TradeForm({
 
   useEffect(() => setDraft(initial), [initial]);
 
+  // Auto-detect red-folder news for the trade's date — mirrors NewsBanner's own
+  // fetch so the two never disagree. Only for a not-yet-saved entry: once a trade
+  // has an id, its newsTags are the historical record and shouldn't be overwritten
+  // by a live recheck of the calendar.
+  useEffect(() => {
+    if (readOnly || draft.id || !draft.date) return;
+    fetch(`/api/calendar?date=${draft.date}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const events = Array.isArray(data) ? data : [];
+        const titles = events.filter((e: any) => e.impact === "High").map((e: any) => e.title);
+        set("newsTags", titles);
+      })
+      .catch(() => {});
+  }, [draft.date, draft.id, readOnly]);
+
   useEffect(() => {
     if (readOnly) return;
     fetch("/api/saved-tags")
