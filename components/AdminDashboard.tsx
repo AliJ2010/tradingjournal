@@ -26,6 +26,7 @@ type DiscountCode = {
   maxRedemptions: number | null;
   timesRedeemed: number;
   endsAt: string | null;
+  whopPromoCodeId: string | null;
 };
 
 type PlanRule = {
@@ -117,6 +118,17 @@ export default function AdminDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active }),
     });
+    loadAll();
+  }
+
+  async function createWhopPromoForDiscountCode(id: string) {
+    const res = await fetch(`/api/admin/discount-codes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ createWhopPromoCode: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) setCodeError(data.error);
     loadAll();
   }
 
@@ -309,6 +321,13 @@ export default function AdminDashboard() {
                 <span className="font-mono">{c.code}</span>
                 <span className="text-base-muted text-xs">{c.percentOff ? `${c.percentOff}% off` : c.amountOffCents ? `$${(c.amountOffCents / 100).toFixed(2)} off` : "—"}</span>
                 <span className="text-base-muted text-xs">{c.endsAt ? `ends ${new Date(c.endsAt).toLocaleDateString()}` : "no end date"}</span>
+                {c.whopPromoCodeId ? (
+                  <span className="text-xs text-pill-green-bg">Whop-linked</span>
+                ) : (
+                  <button onClick={() => createWhopPromoForDiscountCode(c.id)} className="text-xs text-accent hover:underline">
+                    Not in Whop — fix
+                  </button>
+                )}
                 <button
                   onClick={() => toggleCode(c.id, !c.active)}
                   className={`text-xs px-2 py-1 rounded-md ${c.active ? "bg-pill-green-bg/20 text-pill-green-bg" : "bg-base-panel2 text-base-muted"}`}

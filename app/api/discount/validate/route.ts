@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { resolveEffectivePrice, PLAN_PRICES, type PlanKey } from "@/lib/pricing";
+import { resolveEffectivePrice, type PlanKey } from "@/lib/pricing";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
@@ -10,15 +10,12 @@ export async function POST(req: NextRequest) {
   const clean = (code || "").trim().toUpperCase();
   const plan: PlanKey = planKey === "lifetime" ? "lifetime" : "monthly";
 
-  if (!clean) {
-    const fallback = await resolveEffectivePrice(plan, null);
-    return NextResponse.json({ valid: false, ...fallback });
-  }
+  // Always resolve through the same fallback chain the checkout page uses (creator
+  // code > automatic launch discount > listed price), so the response shape never
+  // varies — a typed code that doesn't match a creator is treated the same as no
+  // code at all for pricing purposes, just flagged invalid for messaging.
+  const resolved = await resolveEffectivePrice(plan, clean || null);
+  const valid = clean ? resolved.source === "creator" : true;
 
-  const resolved = await resolveEffectivePrice(plan, clean);
-  if (resolved.source !== "creator") {
-    return NextResponse.json({ valid: false, listed: PLAN_PRICES[plan].listed });
-  }
-
-  return NextResponse.json({ valid: true, ...resolved });
+  return NextResponse.json({ valid, ...resolved });
 }
