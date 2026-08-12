@@ -17,7 +17,15 @@ export default function RegisterPage() {
   const [refCode, setRefCode] = useState("");
 
   useEffect(() => {
-    setRefCode(new URLSearchParams(window.location.search).get("ref") || "");
+    const fromQuery = new URLSearchParams(window.location.search).get("ref");
+    if (fromQuery) {
+      setRefCode(fromQuery);
+      return;
+    }
+    fetch("/api/referral/current")
+      .then((r) => r.json())
+      .then((data) => data.code && setRefCode(data.code))
+      .catch(() => {});
   }, []);
 
   async function onSubmit(e: React.FormEvent) {

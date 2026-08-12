@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAnthropicClient, isCoachConfigured, COACH_MODEL } from "@/lib/anthropic";
-import { PRICING, OFFICIAL_DISCOUNT_CODE } from "@/lib/pricing";
+import { PLAN_PRICES } from "@/lib/pricing";
 
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
 const MAX_PER_HOUR = 15;
@@ -25,7 +25,7 @@ const SYSTEM_PROMPT = `You are the support assistant on OpticTrader's website, a
 - An AI Coach chat that gives personalized feedback based on a trader's logged history, with a monthly message allowance depending on plan
 - A Friends feature to share progress with one other trader, with per-field privacy controls
 - CSV and PDF export of the journal
-- Pricing: Monthly is $${PRICING.monthly.listed}/mo (${PRICING.monthly.messagesPerMonth} AI Coach messages/mo, Friends, CSV+PDF export). Lifetime is $${PRICING.lifetime.listed} one-time (unlimited AI Coach messages). Code "${OFFICIAL_DISCOUNT_CODE}" gives 25% off — for Monthly that's $${PRICING.monthly.discounted}/mo for the first month only (then back to full price), for Lifetime it's a permanent 25% off the one-time price ($${PRICING.lifetime.discounted.toFixed(0)}) since there's no recurring billing. Creator referral codes also give 25% off, but forever instead of just the first month. A 5-day free trial is available on signup, no card required. Billing isn't live yet — plans are shown for preview.
+- Pricing: Monthly is $${PLAN_PRICES.monthly.listed}/mo (${PLAN_PRICES.monthly.messagesPerMonth} AI Coach messages/mo, Friends, CSV+PDF export). Lifetime is $${PLAN_PRICES.lifetime.listed} one-time (unlimited AI Coach messages). A launch discount may be automatically applied for a limited time, and creator referral codes can also unlock a discount. A 5-day free trial is available on signup, no card required. Payment is handled securely through Whop.
 
 Answer questions about these features and pricing concisely and helpfully. If asked something unrelated to OpticTrader, politely redirect to what OpticTrader does. Never claim to have access to any specific user's private trading data — you don't have it.`;
 

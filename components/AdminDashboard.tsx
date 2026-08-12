@@ -25,14 +25,28 @@ type DiscountCode = {
   active: boolean;
   maxRedemptions: number | null;
   timesRedeemed: number;
+  endsAt: string | null;
+};
+
+type PlanRule = {
+  id: string;
+  planKey: string;
+  discountValue: number;
+  commissionValue: number;
+  commissionDuration: string;
+  whopPromoCodeId: string | null;
 };
 
 type CreatorCode = {
   id: string;
   code: string;
   commissionPercent: number;
+  active: boolean;
+  whopAffiliateId: string | null;
+  whopAffiliateCode: string | null;
   creator: { username: string; displayName: string };
   _count: { referrals: number };
+  planRules: PlanRule[];
 };
 
 type SupportMessage = { id: string; name: string; email: string; message: string; createdAt: string };
@@ -43,13 +57,16 @@ export default function AdminDashboard() {
   const [creatorCodes, setCreatorCodes] = useState<CreatorCode[]>([]);
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedCreator, setExpandedCreator] = useState<string | null>(null);
 
   const [newCode, setNewCode] = useState("");
-  const [newPercentOff, setNewPercentOff] = useState("");
+  const [newPercentOff, setNewPercentOff] = useState("25");
+  const [newEndsAt, setNewEndsAt] = useState("");
   const [codeError, setCodeError] = useState("");
 
   const [creatorUsername, setCreatorUsername] = useState("");
   const [creatorCodeInput, setCreatorCodeInput] = useState("");
+  const [creatorDiscount, setCreatorDiscount] = useState("25");
   const [creatorCommission, setCreatorCommission] = useState("20");
   const [creatorError, setCreatorError] = useState("");
 
@@ -71,19 +88,25 @@ export default function AdminDashboard() {
     loadAll();
   }, []);
 
+  function oneMonthFromNow() {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
   async function createDiscountCode(e: React.FormEvent) {
     e.preventDefault();
     setCodeError("");
     const res = await fetch("/api/admin/discount-codes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: newCode, percentOff: newPercentOff || undefined }),
+      body: JSON.stringify({ code: newCode, percentOff: newPercentOff || undefined, endsAt: newEndsAt || undefined }),
     });
     const data = await res.json();
     if (!res.ok) setCodeError(data.error);
     else {
       setNewCode("");
-      setNewPercentOff("");
+      setNewEndsAt("");
       loadAll();
     }
   }
@@ -103,7 +126,12 @@ export default function AdminDashboard() {
     const res = await fetch("/api/admin/creator-codes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: creatorUsername, code: creatorCodeInput, commissionPercent: creatorCommission }),
+      body: JSON.stringify({
+        username: creatorUsername,
+        code: creatorCodeInput,
+        commissionPercent: creatorCommission,
+        discountPercent: creatorDiscount,
+      }),
     });
     const data = await res.json();
     if (!res.ok) setCreatorError(data.error);
@@ -112,6 +140,47 @@ export default function AdminDashboard() {
       setCreatorCodeInput("");
       loadAll();
     }
+  }
+
+  async function updateCreator(id: string, patch: Record<string, any>) {
+    await fetch(`/api/admin/creator-codes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    loadAll();
+  }
+
+  async function createLifetimeRule(creatorId: string, discountValue: string, commissionValue: string, createPromo: boolean) {
+    await fetch(`/api/admin/creator-codes/${creatorId}/plan-rules`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        planKey: "lifetime",
+        discountValue: Number(discountValue),
+        commissionValue: Number(commissionValue),
+        commissionDuration: "first_payment",
+        createWhopPromoCode: createPromo,
+      }),
+    });
+    loadAll();
+  }
+
+  async function createWhopPromoForMonthly(creator: CreatorCode) {
+    const rule = creator.planRules.find((r) => r.planKey === "monthly");
+    if (!rule) return;
+    await fetch(`/api/admin/creator-codes/${creator.id}/plan-rules`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        planKey: "monthly",
+        discountValue: rule.discountValue,
+        commissionValue: rule.commissionValue,
+        commissionDuration: rule.commissionDuration,
+        createWhopPromoCode: true,
+      }),
+    });
+    loadAll();
   }
 
   async function setUserRole(id: string, role: string) {
@@ -199,21 +268,39 @@ export default function AdminDashboard() {
 
       <div className="grid md:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">
-          <h2 className="text-sm font-semibold mb-4">Discount codes</h2>
-          <form onSubmit={createDiscountCode} className="flex gap-2 mb-4">
-            <input
-              value={newCode}
-              onChange={(e) => setNewCode(e.target.value)}
-              placeholder="CODE"
-              className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
-            />
-            <input
-              value={newPercentOff}
-              onChange={(e) => setNewPercentOff(e.target.value)}
-              placeholder="% off"
-              className="w-20 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
-            />
-            <button className="bg-brand-gradient text-white rounded-lg px-3 py-2 text-sm shadow-glow hover:brightness-110 transition-all">Add</button>
+          <h2 className="text-sm font-semibold mb-1">Discount codes</h2>
+          <p className="text-xs text-base-muted mb-4">General codes (e.g. the launch promo). No affiliate commission is ever attached to these.</p>
+          <form onSubmit={createDiscountCode} className="space-y-2 mb-4">
+            <div className="flex gap-2">
+              <input
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value)}
+                placeholder="CODE"
+                className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
+              />
+              <input
+                value={newPercentOff}
+                onChange={(e) => setNewPercentOff(e.target.value)}
+                placeholder="% off"
+                className="w-20 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={newEndsAt}
+                onChange={(e) => setNewEndsAt(e.target.value)}
+                className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setNewEndsAt(oneMonthFromNow())}
+                className="text-xs text-accent hover:underline whitespace-nowrap"
+              >
+                +1 month
+              </button>
+            </div>
+            <button className="w-full bg-brand-gradient text-white rounded-lg px-3 py-2 text-sm shadow-glow hover:brightness-110 transition-all">Add</button>
           </form>
           {codeError && <p className="text-xs text-pill-red-bg mb-2">{codeError}</p>}
           <div className="space-y-1.5">
@@ -221,7 +308,7 @@ export default function AdminDashboard() {
               <div key={c.id} className="flex items-center justify-between text-sm px-2 py-1.5 rounded-lg hover:bg-base-panel2/50">
                 <span className="font-mono">{c.code}</span>
                 <span className="text-base-muted text-xs">{c.percentOff ? `${c.percentOff}% off` : c.amountOffCents ? `$${(c.amountOffCents / 100).toFixed(2)} off` : "—"}</span>
-                <span className="text-base-muted text-xs">{c.timesRedeemed} used</span>
+                <span className="text-base-muted text-xs">{c.endsAt ? `ends ${new Date(c.endsAt).toLocaleDateString()}` : "no end date"}</span>
                 <button
                   onClick={() => toggleCode(c.id, !c.active)}
                   className={`text-xs px-2 py-1 rounded-md ${c.active ? "bg-pill-green-bg/20 text-pill-green-bg" : "bg-base-panel2 text-base-muted"}`}
@@ -234,7 +321,8 @@ export default function AdminDashboard() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">
-          <h2 className="text-sm font-semibold mb-4">Content creator codes</h2>
+          <h2 className="text-sm font-semibold mb-1">Creators / Affiliates</h2>
+          <p className="text-xs text-base-muted mb-4">One code discounts the customer AND attributes the affiliate sale.</p>
           <form onSubmit={createCreatorCode} className="space-y-2 mb-4">
             <div className="flex gap-2">
               <input
@@ -249,27 +337,86 @@ export default function AdminDashboard() {
                 placeholder="CODE"
                 className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
               />
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={creatorDiscount}
+                onChange={(e) => setCreatorDiscount(e.target.value)}
+                placeholder="Customer discount %"
+                className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
+              />
               <input
                 value={creatorCommission}
                 onChange={(e) => setCreatorCommission(e.target.value)}
-                placeholder="%"
-                className="w-16 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
+                placeholder="Commission %"
+                className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-3 py-2 text-sm"
               />
             </div>
             <button className="w-full bg-brand-gradient text-white rounded-lg px-3 py-2 text-sm shadow-glow hover:brightness-110 transition-all">
-              Create creator code
+              Create creator code (Monthly rule)
             </button>
           </form>
           {creatorError && <p className="text-xs text-pill-red-bg mb-2">{creatorError}</p>}
           <div className="space-y-1.5">
-            {creatorCodes.map((c) => (
-              <div key={c.id} className="flex items-center justify-between text-sm px-2 py-1.5 rounded-lg hover:bg-base-panel2/50">
-                <span className="font-mono">{c.code}</span>
-                <span className="text-base-muted text-xs">{c.creator.displayName}</span>
-                <span className="text-base-muted text-xs">{c.commissionPercent}%</span>
-                <span className="text-base-muted text-xs">{c._count.referrals} referrals</span>
-              </div>
-            ))}
+            {creatorCodes.map((c) => {
+              const isExpanded = expandedCreator === c.id;
+              const monthlyRule = c.planRules.find((r) => r.planKey === "monthly");
+              const lifetimeRule = c.planRules.find((r) => r.planKey === "lifetime");
+              return (
+                <div key={c.id} className="rounded-lg hover:bg-base-panel2/50">
+                  <div
+                    onClick={() => setExpandedCreator(isExpanded ? null : c.id)}
+                    className="flex items-center justify-between text-sm px-2 py-1.5 cursor-pointer"
+                  >
+                    <span className="font-mono">{c.code}</span>
+                    <span className="text-base-muted text-xs">{c.creator.displayName}</span>
+                    <span className="text-base-muted text-xs">{c._count.referrals} referrals</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${c.active ? "text-pill-green-bg" : "text-base-muted"}`}>
+                      {c.active ? "Active" : "Disabled"}
+                    </span>
+                  </div>
+                  {isExpanded && (
+                    <div className="px-3 pb-3 space-y-2 text-xs">
+                      <div className="text-base-muted">
+                        Monthly: {monthlyRule?.discountValue}% off, {monthlyRule?.commissionValue}% commission ({monthlyRule?.commissionDuration}) —{" "}
+                        {monthlyRule?.whopPromoCodeId ? "Whop promo linked" : "no Whop promo yet"}
+                      </div>
+                      {!monthlyRule?.whopPromoCodeId && (
+                        <button onClick={() => createWhopPromoForMonthly(c)} className="text-accent hover:underline">
+                          Create Whop promo code for Monthly
+                        </button>
+                      )}
+                      <div className="text-base-muted mt-2">
+                        Lifetime: {lifetimeRule ? `${lifetimeRule.discountValue}% off, ${lifetimeRule.commissionValue}% commission` : "not configured"}
+                      </div>
+                      {!lifetimeRule && (
+                        <LifetimeRuleForm onSubmit={(d, comm, createPromo) => createLifetimeRule(c.id, d, comm, createPromo)} />
+                      )}
+                      <div className="flex gap-2 items-center pt-2">
+                        <input
+                          defaultValue={c.whopAffiliateCode || ""}
+                          onBlur={(e) => updateCreator(c.id, { whopAffiliateCode: e.target.value })}
+                          placeholder="Whop affiliate code"
+                          className="flex-1 bg-base-panel2 border border-base-border rounded-md px-2 py-1"
+                        />
+                        <input
+                          defaultValue={c.whopAffiliateId || ""}
+                          onBlur={(e) => updateCreator(c.id, { whopAffiliateId: e.target.value })}
+                          placeholder="Whop affiliate ID"
+                          className="flex-1 bg-base-panel2 border border-base-border rounded-md px-2 py-1"
+                        />
+                      </div>
+                      <button
+                        onClick={() => updateCreator(c.id, { active: !c.active })}
+                        className={`text-xs px-2 py-1 rounded-md ${c.active ? "bg-pill-red-bg/20 text-pill-red-bg" : "bg-pill-green-bg/20 text-pill-green-bg"}`}
+                      >
+                        {c.active ? "Disable creator" : "Enable creator"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </motion.div>
       </div>
@@ -289,6 +436,21 @@ export default function AdminDashboard() {
           ))}
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function LifetimeRuleForm({ onSubmit }: { onSubmit: (discount: string, commission: string, createPromo: boolean) => void }) {
+  const [discount, setDiscount] = useState("20");
+  const [commission, setCommission] = useState("20");
+
+  return (
+    <div className="flex gap-2 items-center">
+      <input value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="% off" className="w-16 bg-base-panel2 border border-base-border rounded-md px-2 py-1" />
+      <input value={commission} onChange={(e) => setCommission(e.target.value)} placeholder="% comm" className="w-16 bg-base-panel2 border border-base-border rounded-md px-2 py-1" />
+      <button onClick={() => onSubmit(discount, commission, true)} className="text-accent hover:underline">
+        Set up Lifetime rule + Whop promo
+      </button>
     </div>
   );
 }

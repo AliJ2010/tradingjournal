@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { createSessionCookie } from "@/lib/session";
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
   const email = (body.email || "").trim().toLowerCase();
   const password = body.password || "";
   const displayName = (body.displayName || username).trim();
-  const refCode = (body.refCode || "").trim();
+  const refCode = (body.refCode || cookies().get("referral_code")?.value || "").trim();
 
   if (!username || username.length < 3) {
     return NextResponse.json({ error: "Username must be at least 3 characters." }, { status: 400 });
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   let creatorCode = null;
   if (refCode) {
-    creatorCode = await prisma.creatorCode.findUnique({ where: { code: refCode } });
+    creatorCode = await prisma.creatorCode.findUnique({ where: { code: refCode.toUpperCase() } });
   }
 
   const passwordHash = await hashPassword(password);

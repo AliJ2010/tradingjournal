@@ -21,12 +21,17 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.discountCode.findUnique({ where: { code } });
   if (existing) return NextResponse.json({ error: "That code already exists." }, { status: 409 });
 
+  const planKeys: string[] = Array.isArray(body.planKeys) && body.planKeys.length > 0 ? body.planKeys : ["monthly", "lifetime"];
+
   const created = await prisma.discountCode.create({
     data: {
       code,
       percentOff: body.percentOff ? Number(body.percentOff) : null,
       amountOffCents: body.amountOffCents ? Number(body.amountOffCents) : null,
       maxRedemptions: body.maxRedemptions ? Number(body.maxRedemptions) : null,
+      startsAt: body.startsAt ? new Date(body.startsAt) : null,
+      endsAt: body.endsAt ? new Date(body.endsAt) : null,
+      planKeys: JSON.stringify(planKeys),
     },
   });
 

@@ -40,6 +40,10 @@ export function getCoachMessageLimit(plan: string): number {
   return COACH_MESSAGE_LIMITS[plan] ?? 50;
 }
 
+// Monthly Whop subscribers get 150 messages tied to their actual billing period
+// (not the calendar month) — see app/api/coach/route.ts for the atomic increment.
+export const MONTHLY_AI_MESSAGE_LIMIT = 150;
+
 export async function maybeSendTrialReminder(user: {
   id: string;
   email: string;

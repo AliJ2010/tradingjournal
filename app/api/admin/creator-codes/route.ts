@@ -8,7 +8,11 @@ export async function GET() {
 
   const codes = await prisma.creatorCode.findMany({
     orderBy: { createdAt: "desc" },
-    include: { creator: { select: { username: true, displayName: true } }, _count: { select: { referrals: true } } },
+    include: {
+      creator: { select: { username: true, displayName: true } },
+      _count: { select: { referrals: true } },
+      planRules: true,
+    },
   });
 
   return NextResponse.json(codes);
@@ -22,6 +26,7 @@ export async function POST(req: NextRequest) {
   const username = (body.username || "").trim().toLowerCase();
   const code = (body.code || "").trim().toUpperCase();
   const commissionPercent = body.commissionPercent ? Number(body.commissionPercent) : 20;
+  const discountPercent = body.discountPercent ? Number(body.discountPercent) : 25;
 
   if (!username || !code) {
     return NextResponse.json({ error: "Username and code are required." }, { status: 400 });
@@ -37,7 +42,27 @@ export async function POST(req: NextRequest) {
   if (existingForUser) return NextResponse.json({ error: "That user already has a creator code." }, { status: 409 });
 
   const [created] = await prisma.$transaction([
-    prisma.creatorCode.create({ data: { code, creatorUserId: target.id, commissionPercent } }),
+    prisma.creatorCode.create({
+      data: {
+        code,
+        creatorUserId: target.id,
+        commissionPercent,
+        // Default Monthly rule matches the spec's worked example exactly:
+        // 25% off -> $30, 20% commission of the actual $30 paid, recurring.
+        planRules: {
+          create: {
+            planKey: "monthly",
+            whopPromoCode: code,
+            discountType: "percent",
+            discountValue: discountPercent,
+            commissionType: "percent",
+            commissionValue: commissionPercent,
+            commissionDuration: "all_payments",
+          },
+        },
+      },
+      include: { planRules: true },
+    }),
     prisma.user.update({ where: { id: target.id }, data: { role: "creator" } }),
   ]);
 

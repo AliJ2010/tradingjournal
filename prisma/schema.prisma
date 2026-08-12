@@ -25,6 +25,13 @@ model User {
   referredByCode  String?
   createdAt       DateTime @default(now())
 
+  whopUserId       String?  @unique
+  whopMembershipId String?
+
+  aiPeriodStart  DateTime?
+  aiPeriodEnd    DateTime?
+  aiMessagesUsed Int       @default(0)
+
   trades           Trade[]
   coachMessages    CoachMessage[]
   sentRequests     FriendLink[]   @relation("Requester")
@@ -34,6 +41,8 @@ model User {
   savedTagOptions  SavedTagOption[]
   reactionsGiven    JournalReaction[] @relation("ReactionFrom")
   reactionsReceived JournalReaction[] @relation("ReactionTo")
+  subscriptions     Subscription[]
+  payments          Payment[]
 }
 
 model JournalReaction {
@@ -165,6 +174,8 @@ model CoachMessage {
   @@index([userId, createdAt])
 }
 
+// General (non-affiliate) discount codes, e.g. the launch promo. Backed by a real
+// Whop promo code so the discount actually applies to the charge.
 model DiscountCode {
   id              String   @id @default(cuid())
   code            String   @unique
@@ -173,6 +184,10 @@ model DiscountCode {
   active          Boolean  @default(true)
   maxRedemptions  Int?
   timesRedeemed   Int      @default(0)
+  whopPromoCodeId String?
+  startsAt        DateTime?
+  endsAt          DateTime?
+  planKeys        String   @default("[]") // JSON array, e.g. ["monthly","lifetime"]
   createdAt       DateTime @default(now())
 }
 
@@ -181,10 +196,34 @@ model CreatorCode {
   code              String   @unique
   creatorUserId     String   @unique
   creator           User     @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
-  commissionPercent Int      @default(20)
+  commissionPercent Int      @default(20) // legacy default, superseded by CreatorPlanRule per plan
+  active            Boolean  @default(true)
+  whopAffiliateId   String?
+  whopAffiliateCode String?
   createdAt         DateTime @default(now())
 
   referrals Referral[]
+  planRules CreatorPlanRule[]
+}
+
+// Per-plan discount/commission configuration for a creator code — lets one visible
+// code (e.g. JOHN25) carry different economics for Monthly vs. Lifetime.
+model CreatorPlanRule {
+  id                 String      @id @default(cuid())
+  creatorCodeId      String
+  creatorCode        CreatorCode @relation(fields: [creatorCodeId], references: [id], onDelete: Cascade)
+  planKey            String // "monthly" | "lifetime"
+  whopPromoCodeId    String?
+  whopPromoCode      String // literal code string, kept in sync with the visible creator code
+  discountType       String      @default("percent") // "percent" | "flat"
+  discountValue      Float
+  commissionType      String     @default("percent") // "percent" | "flat"
+  commissionValue     Float
+  commissionDuration String      @default("first_payment") // "first_payment" | "all_payments"
+  active             Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+
+  @@unique([creatorCodeId, planKey])
 }
 
 model Referral {
@@ -193,5 +232,50 @@ model Referral {
   creatorCode    CreatorCode @relation(fields: [creatorCodeId], references: [id], onDelete: Cascade)
   referredUserId String      @unique
   referredUser   User        @relation(fields: [referredUserId], references: [id], onDelete: Cascade)
+  firstTouchAt   DateTime    @default(now())
+  convertedAt    DateTime?
+  status         String      @default("attributed") // "attributed" | "converted"
   createdAt      DateTime    @default(now())
+}
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider           String    @default("whop")
+  whopMembershipId   String    @unique
+  whopPlanId         String
+  status             String
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String   @default("whop")
+  whopPaymentId String   @unique
+  amount        Float
+  currency      String   @default("usd")
+  planKey       String
+  status        String
+  creatorCodeId String?
+  promoCode     String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String   @default("whop")
+  eventId     String   @unique
+  eventType   String
+  processedAt DateTime @default(now())
 }
