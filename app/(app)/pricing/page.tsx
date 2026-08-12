@@ -10,9 +10,7 @@ type PriceResult = { listed: number; price: number; source: "creator" | "launch"
 function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [code, setCode] = useState("");
-  const [applied, setApplied] = useState<{ code: string; valid: boolean } | null>(null);
-  const [checking, setChecking] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
   const [monthly, setMonthly] = useState<PriceResult>({ listed: PLAN_PRICES.monthly.listed, price: PLAN_PRICES.monthly.listed, source: "none", code: null });
   const [lifetime, setLifetime] = useState<PriceResult>({ listed: PLAN_PRICES.lifetime.listed, price: PLAN_PRICES.lifetime.listed, source: "none", code: null });
 
@@ -23,22 +21,25 @@ function PricingContent() {
     ]);
     setMonthly(m);
     setLifetime(l);
-    return { m, l };
   }
 
+  // The discount/referral code field lives on the checkout page only — here we just
+  // silently carry forward a referral link (?ref=) or previously-stored referral
+  // cookie so it's already applied by the time the customer reaches checkout, and
+  // reflect it in the displayed price if it's a real creator code.
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) {
-      setCode(ref);
-      applyCode(ref);
+      setReferralCode(ref);
+      fetchPrices(ref);
       return;
     }
     fetch("/api/referral/current")
       .then((r) => r.json())
       .then((data) => {
         if (data.code) {
-          setCode(data.code);
-          applyCode(data.code);
+          setReferralCode(data.code);
+          fetchPrices(data.code);
         } else {
           fetchPrices("");
         }
@@ -47,28 +48,9 @@ function PricingContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function applyCode(value?: string) {
-    const c = (value ?? code).trim();
-    if (!c) {
-      setApplied(null);
-      fetchPrices("");
-      return;
-    }
-    setChecking(true);
-    const { m } = await fetchPrices(c);
-    setApplied({ code: c, valid: m.valid || m.source === "creator" });
-    setChecking(false);
-  }
-
-  function removeCode() {
-    setCode("");
-    setApplied(null);
-    fetchPrices("");
-  }
-
   function selectPlan(planKey: "monthly" | "lifetime") {
     const params = new URLSearchParams();
-    if (applied?.valid) params.set("code", applied.code);
+    if (referralCode) params.set("code", referralCode);
     router.push(`/checkout/${planKey}${params.toString() ? `?${params.toString()}` : ""}`);
   }
 
@@ -79,35 +61,6 @@ function PricingContent() {
     <div className="p-4 sm:p-8 max-w-4xl mx-auto">
       <h1 className="text-2xl font-semibold mb-1">Pricing</h1>
       <p className="text-sm text-base-muted mb-8">Simple pricing, no surprises.</p>
-
-      <div className="flex gap-2 mb-1 max-w-sm">
-        <input
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && applyCode()}
-          placeholder="Referral or discount code"
-          className="flex-1 bg-base-panel2 border border-base-border rounded-lg px-4 py-2.5 text-sm focus:border-accent focus:shadow-glow outline-none transition-all"
-        />
-        {applied ? (
-          <button onClick={removeCode} className="bg-base-panel2 border border-base-border rounded-lg px-4 py-2.5 text-sm hover:bg-base-panel transition-colors">
-            Remove
-          </button>
-        ) : (
-          <button
-            onClick={() => applyCode()}
-            disabled={checking}
-            className="bg-base-panel2 border border-base-border rounded-lg px-4 py-2.5 text-sm hover:bg-base-panel transition-colors disabled:opacity-50"
-          >
-            Apply
-          </button>
-        )}
-      </div>
-      {applied && (
-        <p className={`text-sm mb-6 ${applied.valid ? "text-pill-green-bg" : "text-pill-red-bg"}`}>
-          {applied.valid ? `Code ${applied.code} applied.` : "That code isn't valid."}
-        </p>
-      )}
-      {!applied && <div className="mb-6" />}
 
       <div className="grid md:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-panel border border-base-border rounded-2xl p-6">

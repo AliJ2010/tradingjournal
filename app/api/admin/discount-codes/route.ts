@@ -44,13 +44,14 @@ export async function POST(req: NextRequest) {
         base_currency: "usd",
         company_id: process.env.WHOP_COMPANY_ID,
         new_users_only: false,
+        unlimited_stock: true,
         promo_duration_months: 999,
         plan_ids: planIds,
       });
       whopPromoCodeId = promo.id;
     } catch (err: any) {
       console.error("Failed to create Whop promo code", err);
-      return NextResponse.json({ error: "Couldn't create the Whop promo code — check it doesn't already exist in Whop." }, { status: 502 });
+      return NextResponse.json({ error: `Couldn't create the Whop promo code: ${err?.message || "unknown error"}` }, { status: 502 });
     }
   }
 

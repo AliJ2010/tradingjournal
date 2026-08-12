@@ -42,6 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         base_currency: "usd",
         company_id: process.env.WHOP_COMPANY_ID,
         new_users_only: false,
+        unlimited_stock: true,
         // The customer's discounted price is meant to persist for the life of their
         // subscription (their "locked-in" rate) — independent of commissionDuration,
         // which only controls how long the *creator* keeps earning on it.
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       whopPromoCodeId = promo.id;
     } catch (err: any) {
       console.error("Failed to create Whop promo code", err);
-      return NextResponse.json({ error: "Couldn't create the Whop promo code — check it doesn't already exist." }, { status: 502 });
+      return NextResponse.json({ error: `Couldn't create the Whop promo code: ${err?.message || "unknown error"}` }, { status: 502 });
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { StatCard } from "@/components/StatCards";
 import DownloadPnlCardButton from "@/components/DownloadPnlCardButton";
 import { parseTags } from "@/lib/json";
@@ -222,7 +223,20 @@ export default function DashboardPage() {
                 {stats.tradeLog.map((t) => (
                   <tr key={t.id} className="border-b border-base-border/60 last:border-b-0">
                     <td className="py-2 pr-4 text-base-muted">{new Date(t.date).toLocaleDateString(undefined, { timeZone: "UTC" })}</td>
-                    <td className="py-2 pr-4">{t.direction || "—"}</td>
+                    <td className="py-2 pr-4">
+                      {t.direction ? (
+                        <span className="inline-flex items-center gap-1">
+                          {t.direction.toLowerCase() === "short" ? (
+                            <ArrowDown className="w-3.5 h-3.5 text-pill-red-bg" />
+                          ) : (
+                            <ArrowUp className="w-3.5 h-3.5 text-pill-green-bg" />
+                          )}
+                          {t.direction}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="py-2 pr-4">{t.instrument || "—"}</td>
                     <td className="py-2 pr-4 text-base-muted">{t.timeFrame || "—"}</td>
                     <td className="py-2 pr-4 text-base-muted">{t.entryTime || "—"}</td>
