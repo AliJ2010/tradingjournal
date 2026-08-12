@@ -19,6 +19,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (VALID_ROLES.includes(body.role)) data.role = body.role;
   if (VALID_PLANS.includes(body.plan)) data.plan = body.plan;
 
+  // An admin can't demote themselves — role is a single-select, so this would
+  // otherwise silently lock them out of /admin with no one else able to undo it.
+  if (params.id === user.id && data.role && data.role !== "admin") {
+    return NextResponse.json({ error: "You can't remove your own admin access — have another admin do it." }, { status: 400 });
+  }
+
   const updated = await prisma.user.update({ where: { id: params.id }, data });
 
   const oldPlan = existing.plan;

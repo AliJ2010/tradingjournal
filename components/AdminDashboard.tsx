@@ -52,7 +52,7 @@ type CreatorCode = {
 
 type SupportMessage = { id: string; name: string; email: string; message: string; createdAt: string };
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ currentUserId }: { currentUserId: string }) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([]);
   const [creatorCodes, setCreatorCodes] = useState<CreatorCode[]>([]);
@@ -287,7 +287,9 @@ export default function AdminDashboard() {
                       <select
                         value={u.role}
                         onChange={(e) => setUserRole(u.id, e.target.value)}
-                        className="bg-base-panel2 border border-base-border rounded-md px-2 py-1 text-xs"
+                        disabled={u.id === currentUserId}
+                        title={u.id === currentUserId ? "You can't change your own role — have another admin do it." : undefined}
+                        className="bg-base-panel2 border border-base-border rounded-md px-2 py-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="user">User</option>
                         <option value="creator">Creator</option>

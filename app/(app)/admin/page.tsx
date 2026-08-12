@@ -5,5 +5,5 @@ import AdminDashboard from "@/components/AdminDashboard";
 export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "admin") redirect("/dashboard");
-  return <AdminDashboard />;
+  return <AdminDashboard currentUserId={user.id} />;
 }
