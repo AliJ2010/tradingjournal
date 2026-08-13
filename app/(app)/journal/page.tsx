@@ -23,6 +23,40 @@ type TradeRow = {
   pnl: number;
 };
 
+function LikesBadge({ count, names }: { count: number; names: string[] }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+
+  return (
+    <span
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setOpen((o) => !o);
+      }}
+      className="relative flex items-center gap-0.5 text-pill-pink-bg text-xs font-medium cursor-pointer"
+    >
+      <Heart size={12} fill="currentColor" />
+      {count}
+      {open && (
+        <span
+          onClick={(e) => e.stopPropagation()}
+          className="absolute right-0 top-full mt-1 z-20 whitespace-nowrap bg-base-panel border border-base-border rounded-lg px-2.5 py-1.5 text-xs text-base-text shadow-lg"
+        >
+          Liked by {names.join(", ")}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function tradeToDraft(t: any): TradeDraft {
   return {
     id: t.id,
@@ -257,15 +291,7 @@ export default function JournalPage() {
                       {new Date(dayTrades[0].date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      {likesByDay[key]?.count > 0 && (
-                        <span
-                          title={likesByDay[key].names.join(", ")}
-                          className="flex items-center gap-0.5 text-pill-pink-bg text-xs font-medium cursor-default"
-                        >
-                          <Heart size={12} fill="currentColor" />
-                          {likesByDay[key].count}
-                        </span>
-                      )}
+                      {likesByDay[key]?.count > 0 && <LikesBadge count={likesByDay[key].count} names={likesByDay[key].names} />}
                       {single ? (
                         <PillBadge small label={single.result} color={single.result === "Win" ? "green" : single.result === "Loss" ? "red" : single.result === "Breakeven" ? "gold" : "slate"} />
                       ) : (
